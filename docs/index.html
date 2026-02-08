@@ -1,0 +1,1473 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Turumba 2.0 — Documentation</title>
+  <meta name="description" content="Turumba 2.0 is a multi-tenant message automation platform built on microservices. Documentation for architecture, messaging, delivery channels, and more.">
+  <link rel="stylesheet" href="styles.css">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='80' font-size='80'>T</text></svg>">
+</head>
+<body>
+
+<div class="sidebar-overlay"></div>
+
+<div class="layout">
+  <!-- Sidebar -->
+  <aside class="sidebar">
+    <div class="sidebar-header">
+      <a href="#home" class="sidebar-logo">
+        <div class="sidebar-logo-icon">T</div>
+        <div class="sidebar-logo-text">
+          <span class="sidebar-logo-title">Turumba 2.0</span>
+          <span class="sidebar-logo-subtitle">Documentation</span>
+        </div>
+      </a>
+    </div>
+
+    <nav class="sidebar-nav">
+      <div class="nav-section-title">Getting Started</div>
+      <a class="nav-link active" data-section="home">
+        <span class="nav-link-icon">&#x1F3E0;</span> Overview
+      </a>
+
+      <div class="nav-section-title">Platform</div>
+      <a class="nav-link" data-section="architecture">
+        <span class="nav-link-icon">&#x1F3D7;</span> Architecture
+      </a>
+      <a class="nav-link" data-section="messaging">
+        <span class="nav-link-icon">&#x1F4E8;</span> Messaging System
+      </a>
+      <a class="nav-link" data-section="channels">
+        <span class="nav-link-icon">&#x1F4E1;</span> Delivery Channels
+      </a>
+
+      <div class="nav-section-title">Reference</div>
+      <a class="nav-link" data-section="full-spec">
+        <span class="nav-link-icon">&#x1F4D6;</span> Full Specification
+      </a>
+      <a class="nav-link" data-section="roadmap">
+        <span class="nav-link-icon">&#x1F5FA;</span> Roadmap
+      </a>
+    </nav>
+
+    <div class="sidebar-footer">
+      <a href="https://github.com/Turumba2" target="_blank" rel="noopener">Turumba2 Organization</a>
+    </div>
+  </aside>
+
+  <!-- Main Content -->
+  <main class="main">
+    <!-- Top Header -->
+    <header class="top-header">
+      <div class="top-header-left">
+        <button class="mobile-menu-btn" aria-label="Open menu">&#9776;</button>
+        <div class="breadcrumb">
+          Docs <span class="breadcrumb-separator">/</span> <span class="breadcrumb-current">Overview</span>
+        </div>
+      </div>
+      <div class="top-header-right">
+        <a class="github-link" href="https://github.com/Turumba2" target="_blank" rel="noopener">
+          <svg viewBox="0 0 16 16" fill="currentColor"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/></svg>
+          <span>GitHub</span>
+        </a>
+      </div>
+    </header>
+
+    <div class="content">
+
+      <!-- ============================================================ -->
+      <!-- HOME / OVERVIEW -->
+      <!-- ============================================================ -->
+      <div id="home" class="section active">
+        <div class="hero">
+          <h1>Turumba 2.0</h1>
+          <p class="subtitle">A multi-tenant <strong>message automation platform</strong> built on microservices. Automate communication across SMS, SMPP, Telegram, WhatsApp, Messenger, Email, and more.</p>
+          <div class="hero-badges">
+            <span class="badge">&#x1F4F1; Multi-Channel</span>
+            <span class="badge">&#x1F465; Multi-Tenant</span>
+            <span class="badge">&#x26A1; Event-Driven</span>
+            <span class="badge">&#x1F433; Docker</span>
+            <span class="badge">&#x1F510; AWS Cognito</span>
+            <span class="badge">&#x1F4DD; FastAPI</span>
+          </div>
+        </div>
+
+        <h2>What Can You Do With Turumba?</h2>
+
+        <div class="feature-grid">
+          <div class="feature-card">
+            <div class="feature-card-icon">&#x1F4E8;</div>
+            <h4>Messages</h4>
+            <p>View all sent and received messages across every delivery channel in one place. Filter by channel, status, date range, or contact.</p>
+          </div>
+          <div class="feature-card">
+            <div class="feature-card-icon">&#x1F465;</div>
+            <h4>Group Messaging</h4>
+            <p>Send a single message to an entire contact group at once across any supported channel with progress tracking.</p>
+          </div>
+          <div class="feature-card">
+            <div class="feature-card-icon">&#x23F0;</div>
+            <h4>Scheduled Messages</h4>
+            <p>Compose messages now and schedule them for delivery at a specific future date and time. Supports recurring schedules.</p>
+          </div>
+          <div class="feature-card">
+            <div class="feature-card-icon">&#x1F4DD;</div>
+            <h4>Template Messages</h4>
+            <p>Create message templates with placeholders like <code>{FIRST_NAME}</code> that get personalized for each recipient automatically.</p>
+          </div>
+          <div class="feature-card">
+            <div class="feature-card-icon">&#x1F4E1;</div>
+            <h4>Delivery Channels</h4>
+            <p>Connect SMS, SMPP, Telegram, WhatsApp, Messenger, and Email channels. Add multiple channels of the same type.</p>
+          </div>
+          <div class="feature-card">
+            <div class="feature-card-icon">&#x1F4CA;</div>
+            <h4>Contacts &amp; Segments</h4>
+            <p>Organize contacts into groups, tag them, manage custom attributes, and create saved filters for reusable audiences.</p>
+          </div>
+          <div class="feature-card">
+            <div class="feature-card-icon">&#x1F916;</div>
+            <h4>AI-Powered</h4>
+            <p>AI message composer, smart replies, message translation, and sentiment detection for inbound messages.</p>
+          </div>
+          <div class="feature-card">
+            <div class="feature-card-icon">&#x1F512;</div>
+            <h4>Multi-Tenant</h4>
+            <p>Create accounts and sub-accounts, invite team members, and define roles with granular permissions per account.</p>
+          </div>
+        </div>
+
+        <h2>Architecture at a Glance</h2>
+
+        <div class="arch-diagram">
+          <div class="arch-layer arch-layer-client">&#x1F310; Client Layer &mdash; Turumba Web (Next.js) &bull; Negarit Web &bull; Mobile (Future)</div>
+          <div class="arch-arrow">&darr;</div>
+          <div class="arch-layer arch-layer-gateway">&#x1F6E1; API Gateway &mdash; KrakenD (Port 8080) &bull; CORS &bull; Context Enrichment &bull; Lua Scripts</div>
+          <div class="arch-arrow">&darr;</div>
+          <div class="arch-layer arch-layer-services">&#x2699; Service Layer &mdash; Account API (FastAPI) &bull; Messaging API (FastAPI)</div>
+          <div class="arch-arrow">&darr;</div>
+          <div class="arch-layer arch-layer-data">&#x1F4BE; Data Layer &mdash; PostgreSQL &bull; MongoDB &bull; AWS Cognito &bull; RabbitMQ</div>
+        </div>
+
+        <h2>Technology Stack</h2>
+
+        <table>
+          <thead>
+            <tr><th>Layer</th><th>Technology</th></tr>
+          </thead>
+          <tbody>
+            <tr><td><strong>API Gateway</strong></td><td>KrakenD 2.12.1, Go plugins, Lua scripting</td></tr>
+            <tr><td><strong>Backend</strong></td><td>Python (FastAPI), SQLAlchemy, Motor (async MongoDB)</td></tr>
+            <tr><td><strong>Authentication</strong></td><td>AWS Cognito, JWT RS256</td></tr>
+            <tr><td><strong>Databases</strong></td><td>PostgreSQL, MongoDB</td></tr>
+            <tr><td><strong>Message Broker</strong></td><td>RabbitMQ (Transactional Outbox pattern)</td></tr>
+            <tr><td><strong>Frontend</strong></td><td>Next.js 16, React 19, TypeScript, Tailwind CSS 4</td></tr>
+            <tr><td><strong>Build System</strong></td><td>Turborepo, pnpm</td></tr>
+            <tr><td><strong>Infrastructure</strong></td><td>Docker, Docker Compose, GitHub Actions CI/CD</td></tr>
+          </tbody>
+        </table>
+
+        <h2>The Four Parts</h2>
+
+        <div class="service-grid">
+          <div class="service-card">
+            <h4>turumba_gateway</h4>
+            <p>Single entry point for the platform. Built on KrakenD.</p>
+            <ul>
+              <li>Route API requests</li>
+              <li>Enrich request context (x-account-ids, x-role-ids)</li>
+              <li>Handle CORS &amp; security</li>
+            </ul>
+          </div>
+          <div class="service-card">
+            <h4>turumba_account_api</h4>
+            <p>Identity, access, and contact management backbone.</p>
+            <ul>
+              <li>Auth &amp; Users (AWS Cognito)</li>
+              <li>Accounts &amp; Roles (RBAC)</li>
+              <li>Contacts (MongoDB)</li>
+              <li>Context Service</li>
+            </ul>
+          </div>
+          <div class="service-card">
+            <h4>turumba_messaging_api</h4>
+            <p>Core messaging capabilities across channels.</p>
+            <ul>
+              <li>Send/Receive messages</li>
+              <li>Templates, Group &amp; Scheduled messages</li>
+              <li>Delivery channels</li>
+              <li>Event Outbox + RabbitMQ</li>
+            </ul>
+          </div>
+          <div class="service-card">
+            <h4>turumba_web_core</h4>
+            <p>Turborepo monorepo with Next.js web apps.</p>
+            <ul>
+              <li>Turumba &mdash; Full dashboard</li>
+              <li>Negarit &mdash; Messaging-focused</li>
+              <li>Shared UI component library</li>
+            </ul>
+          </div>
+        </div>
+
+        <h2>Multi-Tenancy Model</h2>
+        <ul>
+          <li><strong>Accounts</strong> represent organizations or teams</li>
+          <li><strong>Users</strong> can belong to multiple accounts with different roles in each</li>
+          <li><strong>Every API request</strong> is scoped to the user's active account through gateway context enrichment</li>
+          <li><strong>Data isolation</strong> is enforced at the service layer &mdash; users can never access data from accounts they don't belong to</li>
+          <li><strong>Roles and permissions</strong> are account-specific, allowing each organization to define its own access control structure</li>
+        </ul>
+
+        <div class="page-footer">
+          <span>Turumba 2.0 &mdash; February 2026</span>
+          <a href="https://github.com/Turumba2" target="_blank" rel="noopener">Turumba2 Organization</a>
+        </div>
+      </div>
+
+      <!-- ============================================================ -->
+      <!-- ARCHITECTURE -->
+      <!-- ============================================================ -->
+      <div id="architecture" class="section">
+        <h1>Architecture Overview</h1>
+        <p class="subtitle">How the services are organized, how they communicate, and the key design decisions that shape the system.</p>
+
+        <h2>Architecture Principles</h2>
+        <ul>
+          <li><strong>Microservices</strong> &mdash; Loosely coupled services communicating via HTTP/REST, each deployable independently</li>
+          <li><strong>API Gateway Pattern</strong> &mdash; A single entry point (KrakenD) that routes requests, enriches context, and handles cross-cutting concerns</li>
+          <li><strong>Domain-Driven Design</strong> &mdash; Services organized around business domains: accounts (identity, access, contacts) and messaging (channels, messages, templates, schedules)</li>
+          <li><strong>Event-Driven Architecture</strong> &mdash; Transactional Outbox pattern with RabbitMQ for reliable asynchronous processing</li>
+          <li><strong>Cloud-Native</strong> &mdash; Containerized with Docker, orchestrated via Docker Compose, deployed through GitHub Actions CI/CD</li>
+        </ul>
+
+        <h3>Key Architectural Decisions</h3>
+        <table>
+          <thead><tr><th>Decision</th><th>Rationale</th></tr></thead>
+          <tbody>
+            <tr><td>KrakenD API Gateway</td><td>High performance, plugin extensibility, template-based configuration</td></tr>
+            <tr><td>FastAPI for Backend</td><td>Async support, automatic OpenAPI docs, Pydantic validation</td></tr>
+            <tr><td>AWS Cognito</td><td>Managed authentication, JWT tokens, user pool groups for RBAC</td></tr>
+            <tr><td>PostgreSQL + MongoDB</td><td>Relational data for core entities, document storage for flexible schemas (contacts)</td></tr>
+            <tr><td>RabbitMQ</td><td>Reliable message broker with topic routing, dead letter exchange, and management UI</td></tr>
+            <tr><td>Transactional Outbox</td><td>Solves dual-write problem &mdash; entity + event saved in same DB transaction</td></tr>
+            <tr><td>Turborepo</td><td>Efficient monorepo builds with shared configurations and parallel execution</td></tr>
+          </tbody>
+        </table>
+
+        <h2>System Architecture</h2>
+
+        <div class="arch-diagram">
+          <div class="arch-layer arch-layer-client">Client Layer &mdash; Turumba Web &bull; Negarit Web &bull; Mobile (Future)</div>
+          <div class="arch-arrow">&darr; HTTPS</div>
+          <div class="arch-layer arch-layer-gateway">API Gateway &mdash; KrakenD (Port 8080) &bull; CORS &bull; Routing &bull; Context Enrichment &bull; Lua Scripts</div>
+          <div class="arch-arrow">&darr;</div>
+          <div class="arch-layer arch-layer-services">Service Layer &mdash; Account API (FastAPI) &bull; Messaging API (FastAPI)</div>
+          <div class="arch-arrow">&darr;</div>
+          <div class="arch-layer arch-layer-data">Data Layer &mdash; PostgreSQL &bull; MongoDB &bull; AWS Cognito &bull; RabbitMQ</div>
+        </div>
+
+        <h3>Network Architecture</h3>
+        <p>All services run within a shared Docker network (<code>gateway-network</code>). Only the KrakenD gateway (port 8080) is exposed externally.</p>
+
+        <table>
+          <thead><tr><th>Service</th><th>Container Name</th><th>Internal Port</th><th>External Port</th></tr></thead>
+          <tbody>
+            <tr><td>API Gateway</td><td><code>krakend-gateway</code></td><td>8080</td><td>8080</td></tr>
+            <tr><td>Account API</td><td><code>gt_turumba_account_api</code></td><td>8000</td><td>5002</td></tr>
+            <tr><td>Messaging API</td><td><code>gt_turumba_messaging_api</code></td><td>8000</td><td>5001</td></tr>
+            <tr><td>PostgreSQL</td><td><code>postgres</code></td><td>5432</td><td>5432</td></tr>
+            <tr><td>MongoDB</td><td><code>mongodb</code></td><td>27017</td><td>27017</td></tr>
+            <tr><td>RabbitMQ</td><td><code>rabbitmq</code></td><td>5672</td><td>5672 (mgmt: 15672)</td></tr>
+          </tbody>
+        </table>
+
+        <h2>API Gateway</h2>
+
+        <h3>Context Enrichment</h3>
+        <p>The gateway's most important feature. For every authenticated request:</p>
+        <ol>
+          <li>The Go plugin intercepts the request and extracts the <code>Authorization</code> header</li>
+          <li>It calls the Account API's <code>/context/basic</code> endpoint with the user's token</li>
+          <li>The context response contains the user's account IDs and role IDs</li>
+          <li>These are injected as <code>x-account-ids</code> and <code>x-role-ids</code> headers into the downstream request</li>
+          <li>Backend services use these headers for multi-tenant data scoping and permission checks</li>
+        </ol>
+
+        <h3>Request Processing Pipeline</h3>
+        <pre><code>Incoming Request
+    |
+    v
+Pre-Processing
+    1. CORS preflight check
+    2. Route matching
+    3. Header extraction
+    4. Plugin execution (context-enricher)
+    5. Lua script execution
+    |
+    v
+Backend Proxy -> Forward to service, apply timeout (30s), handle retries
+    |
+    v
+Post-Processing
+    1. Response encoding (no-op passthrough)
+    2. Lua post-proxy scripts
+    3. Return to client</code></pre>
+
+        <h3>Configuration Architecture</h3>
+        <pre><code>config/
+├── krakend.tmpl           # Main template — imports partials via Go templates
+├── partials/
+│   ├── configs/           # cors.json, logging.json, plugin.json
+│   └── endpoints/         # auth.json, accounts.json, users.json, context.json
+├── lua/                   # Lua scripts for request/response modification
+└── plugins/               # Compiled Go plugins (.so files)</code></pre>
+
+        <h2>Backend API Architecture</h2>
+
+        <h3>Clean Architecture Layers</h3>
+        <pre><code>Routers Layer (HTTP Request Handlers)
+    ↓
+Controllers Layer (Business Logic Coordination)
+    ↓
+Services Layer (Domain Business Logic)
+    ↓
+Models Layer (Data Access &amp; Persistence)</code></pre>
+
+        <table>
+          <thead><tr><th>Layer</th><th>Responsibility</th><th>Rules</th></tr></thead>
+          <tbody>
+            <tr><td><strong>Routers</strong></td><td>Define API endpoints, validate requests/responses with Pydantic</td><td>No business logic</td></tr>
+            <tr><td><strong>Controllers</strong></td><td>Orchestrate service calls, apply CRUD operations, filtering, sorting</td><td>Uses generic base class</td></tr>
+            <tr><td><strong>Services</strong></td><td>Complex business rules, external integrations (Cognito), validation</td><td>Domain-specific logic</td></tr>
+            <tr><td><strong>Models</strong></td><td>Database models (SQLAlchemy/Motor), query building</td><td>Data access only</td></tr>
+          </tbody>
+        </table>
+
+        <h3>Generic CRUD Controller</h3>
+        <pre><code>CRUDController[T, C, U, R]
+    T = ModelType (SQLAlchemy or Motor model)
+    C = CreateSchema (Pydantic input)
+    U = UpdateSchema (Pydantic input)
+    R = ResponseSchema (Pydantic output)
+
+Abstract Methods: create, get_by_id, get_all, update, delete, count
+Concrete Methods: exists, get_or_create, bulk_create, bulk_delete, model_to_response
+
+Configuration:
+    filter_strategy: FilterStrategy (Postgres or MongoDB)
+    sort_strategy: SortStrategy
+    filter_sort_config: FilterSortConfig (allowed fields, strict mode)
+    schema_config: SchemaConfig (response transformation)</code></pre>
+
+        <h3>Filtering &amp; Sorting System</h3>
+        <p>Database-agnostic filtering and sorting via the Strategy pattern:</p>
+        <p><code>?filter=email:contains:@example.com&amp;filter=created_at:ge:2024-01-01&amp;sort=created_at:desc</code></p>
+
+        <table>
+          <thead><tr><th>Operation</th><th>Description</th><th>Example</th></tr></thead>
+          <tbody>
+            <tr><td><code>eq</code> / <code>ne</code></td><td>Equals / Not equals</td><td><code>status:eq:active</code></td></tr>
+            <tr><td><code>lt</code> / <code>le</code> / <code>gt</code> / <code>ge</code></td><td>Comparison</td><td><code>created_at:ge:2024-01-01</code></td></tr>
+            <tr><td><code>contains</code> / <code>icontains</code></td><td>Substring match</td><td><code>email:icontains:@gmail</code></td></tr>
+            <tr><td><code>like</code> / <code>ilike</code></td><td>SQL LIKE pattern</td><td><code>name:like:%son</code></td></tr>
+            <tr><td><code>in</code></td><td>Value in list</td><td><code>status:in:active,pending</code></td></tr>
+            <tr><td><code>range</code></td><td>Between two values</td><td><code>age:range:18,65</code></td></tr>
+            <tr><td><code>is_null</code></td><td>Null checks</td><td><code>phone:is_null</code></td></tr>
+            <tr><td><code>startswith</code> / <code>endswith</code></td><td>String prefix/suffix</td><td><code>email:endswith:@company.com</code></td></tr>
+          </tbody>
+        </table>
+
+        <h2>Data Architecture</h2>
+
+        <h3>Account API Databases</h3>
+
+        <h4>PostgreSQL</h4>
+        <table>
+          <thead><tr><th>Table</th><th>Key Columns</th><th>Purpose</th></tr></thead>
+          <tbody>
+            <tr><td><code>users</code></td><td>id, email, phone, cognito_user_id</td><td>User accounts with Cognito reference</td></tr>
+            <tr><td><code>accounts</code></td><td>id, name, status</td><td>Multi-tenant organization accounts</td></tr>
+            <tr><td><code>roles</code></td><td>id, name, permissions (JSON), account_id</td><td>Account-specific roles</td></tr>
+            <tr><td><code>account_users</code></td><td>id, account_id, user_id, role_id</td><td>M:N user-account-role mapping</td></tr>
+          </tbody>
+        </table>
+
+        <h4>MongoDB</h4>
+        <table>
+          <thead><tr><th>Collection</th><th>Key Fields</th><th>Purpose</th></tr></thead>
+          <tbody>
+            <tr><td><code>contacts</code></td><td>_id, account_id, name, email, phone, metadata</td><td>Contacts with flexible metadata</td></tr>
+          </tbody>
+        </table>
+
+        <h3>Messaging API Database (PostgreSQL)</h3>
+        <table>
+          <thead><tr><th>Table</th><th>Key Columns</th><th>Purpose</th></tr></thead>
+          <tbody>
+            <tr><td><code>channels</code></td><td>id, account_id, name, channel_type, status, credentials</td><td>Delivery channel connections</td></tr>
+            <tr><td><code>messages</code></td><td>id, account_id, channel_id, contact_id, direction, status</td><td>Individual message records</td></tr>
+            <tr><td><code>templates</code></td><td>id, account_id, name, body, variables</td><td>Reusable message templates</td></tr>
+            <tr><td><code>group_messages</code></td><td>id, account_id, channel_id, template_id, status</td><td>Bulk send campaigns</td></tr>
+            <tr><td><code>scheduled_messages</code></td><td>id, account_id, channel_id, scheduled_at, is_recurring</td><td>Time-delayed messages</td></tr>
+            <tr><td><code>outbox_events</code></td><td>id, event_type, aggregate_type, payload, status</td><td>Transactional outbox for events</td></tr>
+          </tbody>
+        </table>
+
+        <h2>Authentication &amp; Authorization</h2>
+
+        <h3>Authentication Flow</h3>
+        <ol>
+          <li><strong>Login</strong> &mdash; Client sends <code>POST /v1/auth/login</code> with email and password</li>
+          <li><strong>Cognito Validation</strong> &mdash; Credentials validated against the AWS Cognito User Pool</li>
+          <li><strong>JWT Tokens</strong> &mdash; Cognito returns access, ID, and refresh tokens</li>
+          <li><strong>Authenticated Requests</strong> &mdash; Client includes <code>Authorization: Bearer &lt;access_token&gt;</code></li>
+          <li><strong>Token Verification</strong> &mdash; Backend validates the RS256 signature using Cognito's JWKS public keys</li>
+          <li><strong>Claims Extraction</strong> &mdash; <code>sub</code> (user ID), <code>email</code>, and <code>cognito:groups</code> (roles) are extracted</li>
+        </ol>
+
+        <h3>FastAPI Auth Dependencies</h3>
+        <table>
+          <thead><tr><th>Dependency</th><th>Returns</th></tr></thead>
+          <tbody>
+            <tr><td><code>get_current_user</code></td><td>Full JWT token payload (all claims)</td></tr>
+            <tr><td><code>get_current_user_id</code></td><td>User ID (<code>sub</code> claim)</td></tr>
+            <tr><td><code>get_current_user_email</code></td><td>User email</td></tr>
+            <tr><td><code>require_role("admin")</code></td><td>Decorated endpoint requiring specific role</td></tr>
+          </tbody>
+        </table>
+
+        <h2>Event-Driven Architecture</h2>
+
+        <h3>Three-Layer Event Pipeline</h3>
+        <pre><code>Layer 1: EventBus (in-memory, request-scoped)
+    Controllers emit domain events during business logic.
+    Events are collected in memory — nothing is persisted yet.
+         |
+         v
+Layer 2: Transactional Outbox (PostgreSQL)
+    OutboxMiddleware flushes events from the EventBus to the
+    outbox_events table in the SAME DB transaction as the entity.
+    Guarantees atomicity — entity + events succeed or fail together.
+         |
+         v
+Layer 3: Outbox Worker -> RabbitMQ
+    A separate background process polls the outbox table and
+    publishes pending events to RabbitMQ. Events are routed
+    to processing queues by type.
+         |
+         v
+    Consumers (Group Message Processor, Schedule Trigger, etc.)</code></pre>
+
+        <h3>Why Transactional Outbox?</h3>
+        <table>
+          <thead><tr><th>Concern</th><th>How It's Handled</th></tr></thead>
+          <tbody>
+            <tr><td><strong>Atomicity</strong></td><td>Entity + outbox event saved in one DB transaction</td></tr>
+            <tr><td><strong>No event loss</strong></td><td>Events persist in outbox even if RabbitMQ is down</td></tr>
+            <tr><td><strong>Separation of concerns</strong></td><td>Controllers emit events without knowing about outbox or RabbitMQ</td></tr>
+            <tr><td><strong>Idempotency</strong></td><td>Events carry unique IDs &mdash; consumers handle at-least-once delivery</td></tr>
+            <tr><td><strong>Scalability</strong></td><td>Multiple outbox workers with <code>FOR UPDATE SKIP LOCKED</code></td></tr>
+          </tbody>
+        </table>
+
+        <h3>Event Types</h3>
+        <table>
+          <thead><tr><th>Event Type</th><th>Trigger</th></tr></thead>
+          <tbody>
+            <tr><td><code>group_message.created</code></td><td>GroupMessage created</td></tr>
+            <tr><td><code>group_message.queued</code></td><td>Status changed to queued</td></tr>
+            <tr><td><code>group_message.cancelled</code></td><td>Status changed to cancelled</td></tr>
+            <tr><td><code>scheduled_message.created</code></td><td>ScheduledMessage created</td></tr>
+            <tr><td><code>scheduled_message.updated</code></td><td>Schedule configuration changed</td></tr>
+            <tr><td><code>scheduled_message.cancelled</code></td><td>Status changed to cancelled</td></tr>
+            <tr><td><code>scheduled_message.paused</code></td><td>Status changed to paused</td></tr>
+            <tr><td><code>scheduled_message.resumed</code></td><td>Status changed from paused to pending</td></tr>
+          </tbody>
+        </table>
+
+        <h2>Frontend Architecture</h2>
+
+        <h3>Turborepo Monorepo</h3>
+        <table>
+          <thead><tr><th>App</th><th>Port</th><th>Purpose</th></tr></thead>
+          <tbody>
+            <tr><td><strong>turumba</strong></td><td>3600</td><td>Main dashboard for account management, messaging, and channel configuration</td></tr>
+            <tr><td><strong>negarit</strong></td><td>3500</td><td>Streamlined messaging-focused application</td></tr>
+            <tr><td><strong>web</strong></td><td>3000</td><td>Reference template app</td></tr>
+            <tr><td><strong>docs</strong></td><td>3001</td><td>Documentation app</td></tr>
+          </tbody>
+        </table>
+
+        <h3>Tech Stack</h3>
+        <table>
+          <thead><tr><th>Category</th><th>Technology</th></tr></thead>
+          <tbody>
+            <tr><td>Framework</td><td>Next.js 16 (App Router)</td></tr>
+            <tr><td>UI Library</td><td>React 19</td></tr>
+            <tr><td>Language</td><td>TypeScript 5.9 (strict mode)</td></tr>
+            <tr><td>Styling</td><td>Tailwind CSS v4 with oklch color tokens, light/dark themes</td></tr>
+            <tr><td>Build System</td><td>Turbo 2.7.2, pnpm 9</td></tr>
+          </tbody>
+        </table>
+
+        <h2>Security Architecture</h2>
+        <table>
+          <thead><tr><th>Layer</th><th>Mechanisms</th></tr></thead>
+          <tbody>
+            <tr><td><strong>Network</strong></td><td>Docker network isolation, only gateway exposed (port 8080), internal DNS</td></tr>
+            <tr><td><strong>Transport</strong></td><td>HTTPS termination at load balancer/CDN, CORS policy, request size limits</td></tr>
+            <tr><td><strong>Authentication</strong></td><td>AWS Cognito managed auth, JWT RS256 verification, token expiration</td></tr>
+            <tr><td><strong>Authorization</strong></td><td>RBAC via Cognito groups, endpoint-level <code>require_role()</code>, account-scoped permissions</td></tr>
+            <tr><td><strong>Data</strong></td><td>Password hashing (Cognito), sensitive fields excluded from responses, env-based secrets</td></tr>
+          </tbody>
+        </table>
+
+        <h2>Deployment Architecture</h2>
+
+        <h3>CI/CD Pipeline</h3>
+        <table>
+          <thead><tr><th>Branch</th><th>Environment</th><th>Purpose</th></tr></thead>
+          <tbody>
+            <tr><td><code>main</code></td><td>Development</td><td>Development testing</td></tr>
+            <tr><td><code>stage</code></td><td>Staging</td><td>Pre-production testing</td></tr>
+            <tr><td><code>release/*</code></td><td>Production</td><td>Live environment</td></tr>
+          </tbody>
+        </table>
+
+        <h3>Container Orchestration</h3>
+        <pre><code>krakend (gateway)
+    ├── depends_on: turumba_account_api
+    └── depends_on: turumba_messaging_api
+
+turumba_account_api
+    ├── depends_on: postgres
+    └── depends_on: mongodb
+
+turumba_messaging_api
+    ├── depends_on: postgres
+    └── depends_on: rabbitmq</code></pre>
+
+        <h2>Design Patterns</h2>
+        <table>
+          <thead><tr><th>Pattern</th><th>Application</th><th>Benefit</th></tr></thead>
+          <tbody>
+            <tr><td><strong>API Gateway</strong></td><td>KrakenD routing</td><td>Single entry point, cross-cutting concerns</td></tr>
+            <tr><td><strong>Repository</strong></td><td>Controllers/Services</td><td>Data access abstraction</td></tr>
+            <tr><td><strong>Strategy</strong></td><td>Filter/Sort strategies</td><td>Database-agnostic operations</td></tr>
+            <tr><td><strong>Factory</strong></td><td>Dependency injection</td><td>Flexible object creation</td></tr>
+            <tr><td><strong>Template Method</strong></td><td>CRUDController</td><td>Shared behavior with customization points</td></tr>
+            <tr><td><strong>Decorator</strong></td><td>FastAPI dependencies</td><td>Cross-cutting concerns (auth, validation)</td></tr>
+            <tr><td><strong>Singleton</strong></td><td>Token validator</td><td>Single instance with cached JWKS keys</td></tr>
+            <tr><td><strong>Transactional Outbox</strong></td><td>Event publishing</td><td>Reliable delivery without dual-write problem</td></tr>
+            <tr><td><strong>Domain Events</strong></td><td>EventBus</td><td>Decouple business logic from event persistence</td></tr>
+            <tr><td><strong>Topic Exchange</strong></td><td>RabbitMQ routing</td><td>Pattern-based routing to consumer queues</td></tr>
+          </tbody>
+        </table>
+
+        <h2>Summary</h2>
+        <ul>
+          <li><strong>Scalability</strong> &mdash; Microservices scale independently; outbox workers support horizontal scaling</li>
+          <li><strong>Reliability</strong> &mdash; Transactional Outbox guarantees zero event loss; DLQ for failed messages</li>
+          <li><strong>Maintainability</strong> &mdash; Clean separation of concerns with generic CRUD patterns</li>
+          <li><strong>Security</strong> &mdash; Multi-layer security with managed authentication and multi-tenant isolation</li>
+          <li><strong>Flexibility</strong> &mdash; Database-agnostic patterns, pluggable components, extensible channel types</li>
+          <li><strong>Developer Experience</strong> &mdash; Automated tooling, shared frontend packages, comprehensive documentation</li>
+        </ul>
+
+        <div class="page-footer">
+          <span>Architecture Overview &mdash; v1.0, February 2026</span>
+          <a href="https://github.com/Turumba2" target="_blank" rel="noopener">Turumba2 Organization</a>
+        </div>
+      </div>
+
+      <!-- ============================================================ -->
+      <!-- MESSAGING SYSTEM -->
+      <!-- ============================================================ -->
+      <div id="messaging" class="section">
+        <h1>Messaging System</h1>
+        <p class="subtitle">The core of Turumba. Everything else &mdash; accounts, contacts, roles &mdash; exists to support one goal: letting users send the right message, to the right person, through the right channel, at the right time.</p>
+
+        <h2>Overview</h2>
+        <p>The messaging system is powered by the <strong>turumba_messaging_api</strong> and covers five major areas:</p>
+        <ol>
+          <li><a href="#messaging" onclick="document.querySelector('.collapsible-messages .collapsible-header').click()">Messages</a> &mdash; Send, receive, and view messages</li>
+          <li><a href="#messaging" onclick="document.querySelector('.collapsible-templates .collapsible-header').click()">Template Messages</a> &mdash; Reusable messages with variable placeholders</li>
+          <li><a href="#messaging" onclick="document.querySelector('.collapsible-group .collapsible-header').click()">Group Messaging</a> &mdash; Bulk messaging to contact groups</li>
+          <li><a href="#messaging" onclick="document.querySelector('.collapsible-scheduled .collapsible-header').click()">Scheduled Messages</a> &mdash; Time-delayed message delivery</li>
+          <li><a href="#messaging" onclick="document.querySelector('.collapsible-events .collapsible-header').click()">Event Infrastructure</a> &mdash; EventBus, Transactional Outbox, and RabbitMQ</li>
+        </ol>
+
+        <!-- Messages -->
+        <div class="collapsible open collapsible-messages">
+          <div class="collapsible-header">
+            <span>1. Messages</span>
+            <span class="collapsible-icon">&#x25B6;</span>
+          </div>
+          <div class="collapsible-body">
+            <p>Messages are the fundamental unit of the messaging system. Every interaction is recorded as a message.</p>
+
+            <h4>Message Data Model</h4>
+            <pre><code>messages (PostgreSQL)
+├── id (UUID, PK)
+├── account_id (UUID, indexed)         — tenant isolation
+├── channel_id (UUID, nullable)        — which delivery channel was used
+├── contact_id (UUID, nullable)        — the recipient or sender
+├── sent_by_user_id (UUID, nullable)   — which team member initiated the send
+├── group_message_id (UUID, FK)        — parent group message if part of a bulk send
+├── template_id (UUID, nullable)       — which template was used
+├── direction (string)                 — "outbound", "inbound", or "system"
+├── status (string, indexed)           — "queued", "sending", "sent", "delivered", "failed", etc.
+├── delivery_address (string)          — phone number, email, username, or platform ID
+├── message_body (text)                — rendered message content
+├── metadata (JSONB)                   — channel-specific data
+├── error_details (JSONB, nullable)    — provider error codes on failure
+├── created_at (timestamp)
+└── updated_at (timestamp)</code></pre>
+
+            <h4>Message Types</h4>
+            <table>
+              <thead><tr><th>Type</th><th>Direction</th><th>Description</th></tr></thead>
+              <tbody>
+                <tr><td><strong>Outbound</strong></td><td>Sent</td><td>Message sent from a Turumba user to a contact</td></tr>
+                <tr><td><strong>Inbound</strong></td><td>Received</td><td>Message received from a contact through a connected channel</td></tr>
+                <tr><td><strong>System</strong></td><td>Internal</td><td>Automated messages generated by the system</td></tr>
+              </tbody>
+            </table>
+
+            <h4>Message Status Lifecycle</h4>
+            <pre><code>Scheduled ──→ Queued → Sending → Sent → Delivered
+                                   │
+                                   └→ Failed → Retry → Sent
+                                                 │
+                                                 └→ Permanently Failed</code></pre>
+
+            <h4>API Endpoints</h4>
+            <table>
+              <thead><tr><th>Method</th><th>Endpoint</th><th>Description</th></tr></thead>
+              <tbody>
+                <tr><td><code>POST</code></td><td><code>/v1/messages/</code></td><td>Create a new message</td></tr>
+                <tr><td><code>GET</code></td><td><code>/v1/messages/</code></td><td>List messages (filtered, sorted, paginated)</td></tr>
+                <tr><td><code>GET</code></td><td><code>/v1/messages/{id}</code></td><td>Get a single message by ID</td></tr>
+                <tr><td><code>PATCH</code></td><td><code>/v1/messages/{id}</code></td><td>Update a message</td></tr>
+                <tr><td><code>DELETE</code></td><td><code>/v1/messages/{id}</code></td><td>Delete a message</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Template Messages -->
+        <div class="collapsible collapsible-templates">
+          <div class="collapsible-header">
+            <span>2. Template Messages</span>
+            <span class="collapsible-icon">&#x25B6;</span>
+          </div>
+          <div class="collapsible-body">
+            <p>Template messages are reusable message blueprints with variable placeholders that get replaced with contact-specific data at send time.</p>
+
+            <h4>How Templates Work</h4>
+            <pre><code>Hi {FIRST_NAME}, welcome to {ACCOUNT_NAME}!
+
+Your enrollment code is {ENROLLMENT_CODE}. Please complete
+your registration by {DEADLINE_DATE}.
+
+Best regards,
+{SENDER_NAME}</code></pre>
+            <p>When sent to a contact, variables are resolved:</p>
+            <pre><code>Hi Sarah, welcome to Turumba Academy!
+
+Your enrollment code is TRB-2024-0042. Please complete
+your registration by March 15, 2026.
+
+Best regards,
+Abebe</code></pre>
+
+            <h4>Variable Sources (priority order)</h4>
+            <ol>
+              <li><strong>Contact fields</strong> &mdash; <code>{FIRST_NAME}</code>, <code>{LAST_NAME}</code>, <code>{EMAIL}</code>, <code>{PHONE}</code></li>
+              <li><strong>Contact custom attributes</strong> &mdash; <code>{ENROLLMENT_DATE}</code>, <code>{PROGRAM_NAME}</code></li>
+              <li><strong>Account fields</strong> &mdash; <code>{ACCOUNT_NAME}</code></li>
+              <li><strong>Sender fields</strong> &mdash; <code>{SENDER_NAME}</code>, <code>{SENDER_EMAIL}</code></li>
+              <li><strong>System fields</strong> &mdash; <code>{CURRENT_DATE}</code>, <code>{CURRENT_TIME}</code></li>
+              <li><strong>Custom values</strong> &mdash; Variables provided at send time (e.g., <code>{VERIFICATION_CODE}</code>)</li>
+            </ol>
+
+            <h4>Fallback Strategies</h4>
+            <table>
+              <thead><tr><th>Strategy</th><th>Behavior</th></tr></thead>
+              <tbody>
+                <tr><td><code>keep_placeholder</code></td><td>Leave <code>{FIRST_NAME}</code> as-is (default)</td></tr>
+                <tr><td><code>use_default</code></td><td>Replace with value from <code>default_values</code></td></tr>
+                <tr><td><code>skip_contact</code></td><td>Skip sending to that contact entirely</td></tr>
+              </tbody>
+            </table>
+
+            <h4>API Endpoints</h4>
+            <table>
+              <thead><tr><th>Method</th><th>Endpoint</th><th>Description</th></tr></thead>
+              <tbody>
+                <tr><td><code>POST</code></td><td><code>/v1/templates/</code></td><td>Create a new template</td></tr>
+                <tr><td><code>GET</code></td><td><code>/v1/templates/</code></td><td>List templates</td></tr>
+                <tr><td><code>GET</code></td><td><code>/v1/templates/{id}</code></td><td>Get a single template</td></tr>
+                <tr><td><code>PATCH</code></td><td><code>/v1/templates/{id}</code></td><td>Update a template</td></tr>
+                <tr><td><code>DELETE</code></td><td><code>/v1/templates/{id}</code></td><td>Delete a template</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Group Messaging -->
+        <div class="collapsible collapsible-group">
+          <div class="collapsible-header">
+            <span>3. Group Messaging</span>
+            <span class="collapsible-icon">&#x25B6;</span>
+          </div>
+          <div class="collapsible-body">
+            <p>Send a single message to an entire contact group at once. The system iterates through all contacts, renders template variables for each, and dispatches individual messages through the selected channel.</p>
+
+            <h4>Group Message Statuses</h4>
+            <pre><code>Draft ──→ Queued → Processing → Completed
+   │                    │
+   │                    ├→ Partially Failed
+   │                    │
+   │                    └→ Failed
+   │
+   └→ Cancelled</code></pre>
+
+            <table>
+              <thead><tr><th>Status</th><th>Meaning</th></tr></thead>
+              <tbody>
+                <tr><td><span class="status-badge status-gray">Draft</span></td><td>Created but not yet submitted for sending</td></tr>
+                <tr><td><span class="status-badge status-blue">Queued</span></td><td>Submitted and waiting to be processed</td></tr>
+                <tr><td><span class="status-badge status-yellow">Processing</span></td><td>Currently iterating through contacts and dispatching messages</td></tr>
+                <tr><td><span class="status-badge status-green">Completed</span></td><td>All messages dispatched successfully</td></tr>
+                <tr><td><span class="status-badge status-red">Partially Failed</span></td><td>Some messages delivered, some failed</td></tr>
+                <tr><td><span class="status-badge status-red">Failed</span></td><td>All messages failed</td></tr>
+                <tr><td><span class="status-badge status-gray">Cancelled</span></td><td>Cancelled by user</td></tr>
+              </tbody>
+            </table>
+
+            <h4>Features</h4>
+            <ul>
+              <li><strong>Contact group selection</strong> &mdash; Choose one or more contact groups as recipients</li>
+              <li><strong>Channel selection</strong> &mdash; Choose which delivery channel to send through</li>
+              <li><strong>Template rendering</strong> &mdash; Each contact receives a personalized message</li>
+              <li><strong>Progress tracking</strong> &mdash; Real-time: <code>3,421 / 5,000 delivered</code></li>
+              <li><strong>Skip duplicates</strong> &mdash; Contacts in multiple groups receive the message only once</li>
+              <li><strong>Exclude contacts</strong> &mdash; Optionally exclude specific contacts</li>
+              <li><strong>Rate limiting</strong> &mdash; Respects channel rate limits</li>
+            </ul>
+
+            <h4>Auto-Template Creation</h4>
+            <p>Users can either pass a <code>template_id</code> (existing template) or a <code>message_body</code> (raw text). When <code>message_body</code> is provided, the system automatically creates a Template record, extracting any <code>{VARIABLE_NAME}</code> placeholders.</p>
+
+            <h4>API Endpoints</h4>
+            <table>
+              <thead><tr><th>Method</th><th>Endpoint</th><th>Description</th></tr></thead>
+              <tbody>
+                <tr><td><code>POST</code></td><td><code>/v1/group-messages/</code></td><td>Create a new group message</td></tr>
+                <tr><td><code>GET</code></td><td><code>/v1/group-messages/</code></td><td>List group messages</td></tr>
+                <tr><td><code>GET</code></td><td><code>/v1/group-messages/{id}</code></td><td>Get a single group message (includes progress)</td></tr>
+                <tr><td><code>PATCH</code></td><td><code>/v1/group-messages/{id}</code></td><td>Update (edit draft, cancel, etc.)</td></tr>
+                <tr><td><code>DELETE</code></td><td><code>/v1/group-messages/{id}</code></td><td>Delete a group message</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Scheduled Messages -->
+        <div class="collapsible collapsible-scheduled">
+          <div class="collapsible-header">
+            <span>4. Scheduled Messages</span>
+            <span class="collapsible-icon">&#x25B6;</span>
+          </div>
+          <div class="collapsible-body">
+            <p>Compose a message now and have it delivered at a specific future date and time. Supports both single messages and group messages, with one-time and recurring schedules.</p>
+
+            <h4>Send Type: Single vs Group</h4>
+            <table>
+              <thead><tr><th>Field</th><th>Single</th><th>Group</th></tr></thead>
+              <tbody>
+                <tr><td><code>delivery_address</code></td><td>Required</td><td>Not used</td></tr>
+                <tr><td><code>contact_id</code></td><td>Optional</td><td>Not used</td></tr>
+                <tr><td><code>contact_group_ids</code></td><td>Not used</td><td>Required</td></tr>
+                <tr><td>On trigger creates</td><td>Message record</td><td>GroupMessage record</td></tr>
+              </tbody>
+            </table>
+
+            <h4>Statuses (One-time)</h4>
+            <pre><code>Pending → Triggered → Completed
+   │          │
+   │          └→ Failed
+   └→ Cancelled</code></pre>
+
+            <h4>Statuses (Recurring)</h4>
+            <pre><code>Pending → Triggered → Pending (next_trigger_at updated) → ... → Completed
+   │          │
+   ├→ Paused → Pending (resumed)
+   └→ Cancelled</code></pre>
+
+            <h4>Recurring Schedules</h4>
+            <table>
+              <thead><tr><th>Rule</th><th>Meaning</th></tr></thead>
+              <tbody>
+                <tr><td><code>daily</code></td><td>Every day at the same time</td></tr>
+                <tr><td><code>weekly:mon,wed,fri</code></td><td>Every Monday, Wednesday, Friday</td></tr>
+                <tr><td><code>monthly:15</code></td><td>15th of every month</td></tr>
+                <tr><td><code>monthly:1,15</code></td><td>1st and 15th of every month</td></tr>
+              </tbody>
+            </table>
+
+            <h4>Features</h4>
+            <ul>
+              <li><strong>One-time or recurring</strong> &mdash; Schedule a single delivery or repeating cadence</li>
+              <li><strong>Timezone support</strong> &mdash; Schedule in the user's or recipient's timezone</li>
+              <li><strong>Edit before delivery</strong> &mdash; Modify or cancel before trigger time</li>
+              <li><strong>Pause and resume</strong> &mdash; Temporarily pause recurring schedules</li>
+              <li><strong>View scheduled queue</strong> &mdash; See all upcoming messages sorted by <code>next_trigger_at</code></li>
+            </ul>
+
+            <h4>API Endpoints</h4>
+            <table>
+              <thead><tr><th>Method</th><th>Endpoint</th><th>Description</th></tr></thead>
+              <tbody>
+                <tr><td><code>POST</code></td><td><code>/v1/scheduled-messages/</code></td><td>Create a new scheduled message</td></tr>
+                <tr><td><code>GET</code></td><td><code>/v1/scheduled-messages/</code></td><td>List scheduled messages</td></tr>
+                <tr><td><code>GET</code></td><td><code>/v1/scheduled-messages/{id}</code></td><td>Get a single scheduled message</td></tr>
+                <tr><td><code>PATCH</code></td><td><code>/v1/scheduled-messages/{id}</code></td><td>Update (edit, cancel, pause, resume)</td></tr>
+                <tr><td><code>DELETE</code></td><td><code>/v1/scheduled-messages/{id}</code></td><td>Delete a scheduled message</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Event Infrastructure -->
+        <div class="collapsible collapsible-events">
+          <div class="collapsible-header">
+            <span>5. Event Infrastructure</span>
+            <span class="collapsible-icon">&#x25B6;</span>
+          </div>
+          <div class="collapsible-body">
+            <p>The messaging system uses an event-driven architecture to decouple the API layer from background processing. Domain events are published to RabbitMQ via a <strong>Transactional Outbox</strong> pattern.</p>
+
+            <h4>Three-Layer Architecture</h4>
+            <pre><code>Layer 1: EventBus (in-memory, request-scoped)
+    Controllers emit domain events. Events collected in memory.
+         |
+         v
+Layer 2: Transactional Outbox (PostgreSQL)
+    OutboxMiddleware flushes events to outbox_events table
+    in the SAME DB transaction as the entity.
+         |
+         v
+Layer 3: Outbox Worker → RabbitMQ
+    Background process publishes pending events to RabbitMQ.
+    Events routed to processing queues by type.</code></pre>
+
+            <h4>Router Pattern</h4>
+            <pre><code>result = controller.create(data, db, event_bus)     # events collected in memory
+outbox.flush(db, event_bus, user_id)                 # flush to outbox_events table
+db.commit()                                          # atomic: entity + outbox events
+pg_notify('outbox_channel')                          # wake up outbox worker</code></pre>
+
+            <h4>RabbitMQ Topology</h4>
+            <table>
+              <thead><tr><th>Component</th><th>Type</th><th>Purpose</th></tr></thead>
+              <tbody>
+                <tr><td><code>messaging</code></td><td>Topic exchange (durable)</td><td>Routes all events by event_type pattern</td></tr>
+                <tr><td><code>group_message_processing</code></td><td>Queue (durable)</td><td>Receives <code>group_message.*</code> events</td></tr>
+                <tr><td><code>scheduled_message_processing</code></td><td>Queue (durable)</td><td>Receives <code>scheduled_message.*</code> events</td></tr>
+                <tr><td><code>messaging_audit</code></td><td>Queue (optional)</td><td>Receives all events (<code>#</code>) for audit</td></tr>
+                <tr><td><code>messaging.dlx</code></td><td>Dead letter exchange</td><td>Failed consumer messages</td></tr>
+                <tr><td><code>messaging.dlq</code></td><td>Dead letter queue</td><td>Investigation queue</td></tr>
+              </tbody>
+            </table>
+
+            <h4>Outbox Worker</h4>
+            <ol>
+              <li>Listens on <code>pg_notify('outbox_channel')</code> for instant wake-up (5s poll fallback)</li>
+              <li>Reads pending events in batches of 100 using <code>FOR UPDATE SKIP LOCKED</code></li>
+              <li>Publishes each event to the <code>messaging</code> exchange</li>
+              <li>Marks published events as <code>published</code></li>
+              <li>Retries with exponential backoff (max 10 retries)</li>
+              <li>Cleans up published events older than 7 days</li>
+            </ol>
+          </div>
+        </div>
+
+        <h2>Feature Relationships</h2>
+        <pre><code>                    Delivery Channels
+                    (where messages go)
+                           │
+                           v
+              Template Messages
+              (what the message says)
+                           │
+            ┌──────────────┼──────────────┐
+            │              │              │
+            v              v              v
+      Single Message  Group Message  Scheduled Message
+                           │              │
+                           └──────┬───────┘
+                                  │
+                           EventBus → Outbox → RabbitMQ
+                                  │
+                    ┌─────────────┼─────────────┐
+                    v             v              v
+              Group Msg     Schedule       Audit Log
+              Processor     Trigger
+                    │             │
+                    └──────┬──────┘
+                           │
+                    Message Record (status tracking)</code></pre>
+
+        <div class="page-footer">
+          <span>Messaging System &mdash; February 2026</span>
+          <a href="https://github.com/Turumba2" target="_blank" rel="noopener">Turumba2 Organization</a>
+        </div>
+      </div>
+
+      <!-- ============================================================ -->
+      <!-- DELIVERY CHANNELS -->
+      <!-- ============================================================ -->
+      <div id="channels" class="section">
+        <h1>Delivery Channels</h1>
+        <p class="subtitle">A Delivery Channel is a configured connection between a Turumba account and an external messaging platform. Channels are the "how" of messaging.</p>
+
+        <h2>Supported Channel Types</h2>
+
+        <div class="feature-grid">
+          <div class="feature-card">
+            <div class="feature-card-icon">&#x1F4F1;</div>
+            <h4>SMS (API-based)</h4>
+            <p>Connect to an SMS gateway provider (Twilio, Africa's Talking, Vonage). Outbound SMS, delivery receipts, sender ID.</p>
+          </div>
+          <div class="feature-card">
+            <div class="feature-card-icon">&#x1F4DF;</div>
+            <h4>SMPP (Protocol-based)</h4>
+            <p>Connect directly to an SMS Center via SMPP protocol. Transmitter, Receiver, or Transceiver bind types.</p>
+          </div>
+          <div class="feature-card">
+            <div class="feature-card-icon">&#x2708;</div>
+            <h4>Telegram</h4>
+            <p>Connect a Telegram Bot via BotFather token. Rich messages, inline keyboards, media support.</p>
+          </div>
+          <div class="feature-card">
+            <div class="feature-card-icon">&#x1F4AC;</div>
+            <h4>WhatsApp</h4>
+            <p>Connect via WhatsApp Business API. Template messages, 24-hour window, approval tracking.</p>
+          </div>
+          <div class="feature-card">
+            <div class="feature-card-icon">&#x1F4E9;</div>
+            <h4>Facebook Messenger</h4>
+            <p>Connect a Facebook Page. Quick replies, buttons, carousels, media attachments.</p>
+          </div>
+          <div class="feature-card">
+            <div class="feature-card-icon">&#x2709;</div>
+            <h4>Email</h4>
+            <p>Connect via SMTP/IMAP. Send emails with subject, HTML body, and attachments. Threaded conversations.</p>
+          </div>
+        </div>
+
+        <h2>Channel Configuration</h2>
+        <table>
+          <thead><tr><th>Setting</th><th>Description</th><th>Default</th></tr></thead>
+          <tbody>
+            <tr><td><strong>Sender Name</strong></td><td>Display name for outbound messages</td><td>&mdash;</td></tr>
+            <tr><td><strong>Default Country Code</strong></td><td>Default country code for phone-based channels</td><td>&mdash;</td></tr>
+            <tr><td><strong>Rate Limit</strong></td><td>Maximum messages per minute</td><td>Unlimited</td></tr>
+            <tr><td><strong>Priority</strong></td><td>Selection priority when multiple channels of the same type exist</td><td>0</td></tr>
+            <tr><td><strong>Retry Count</strong></td><td>Number of retry attempts on delivery failure</td><td>3</td></tr>
+            <tr><td><strong>Retry Interval</strong></td><td>Seconds between retry attempts</td><td>60</td></tr>
+          </tbody>
+        </table>
+
+        <blockquote>
+          <p><strong>Credential Security:</strong> Credentials are <strong>write-only</strong>. They are accepted on create and update, but never returned in full in API responses. Responses mask credentials (e.g., <code>sk-****1234</code>).</p>
+        </blockquote>
+
+        <h2>Channel Lifecycle</h2>
+        <pre><code>Add Channel → Configure → Verify Connection → Active
+                                                 │
+                                          ┌──────┴──────┐
+                                       Enabled      Disabled
+                                          │             │
+                                          └──────┬──────┘
+                                                 │
+                                              Remove</code></pre>
+
+        <table>
+          <thead><tr><th>Stage</th><th>Description</th></tr></thead>
+          <tbody>
+            <tr><td><strong>Add Channel</strong></td><td>Select a channel type and provide required credentials</td></tr>
+            <tr><td><strong>Configure</strong></td><td>Set sender name, country code, rate limits, priority, retry policy</td></tr>
+            <tr><td><strong>Verify Connection</strong></td><td>System tests the connection. Channel marked as "connected" or "error"</td></tr>
+            <tr><td><strong>Enable / Disable</strong></td><td>Temporarily disable without removing configuration</td></tr>
+            <tr><td><strong>Remove</strong></td><td>Permanently delete the channel. Previously sent messages retain history</td></tr>
+          </tbody>
+        </table>
+
+        <h2>Channel Status</h2>
+        <table>
+          <thead><tr><th>Status</th><th>Indicator</th><th>Meaning</th></tr></thead>
+          <tbody>
+            <tr><td><strong>Connected</strong></td><td><span class="status-badge status-green">Connected</span></td><td>Credentials valid, ready to send and receive</td></tr>
+            <tr><td><strong>Disconnected</strong></td><td><span class="status-badge status-gray">Disconnected</span></td><td>Connection lost or credentials expired</td></tr>
+            <tr><td><strong>Rate-Limited</strong></td><td><span class="status-badge status-yellow">Rate-Limited</span></td><td>Temporarily throttled by the provider</td></tr>
+            <tr><td><strong>Error</strong></td><td><span class="status-badge status-red">Error</span></td><td>Configuration issue or provider-side failure</td></tr>
+            <tr><td><strong>Disabled</strong></td><td><span class="status-badge status-gray">Disabled</span></td><td>Manually disabled by the user</td></tr>
+          </tbody>
+        </table>
+
+        <h2>Channel Data Model</h2>
+        <pre><code>channels (PostgreSQL)
+├── id (UUID, PK)
+├── account_id (UUID, indexed)            — tenant isolation
+├── name (string)                         — user-defined channel name
+├── channel_type (string, indexed)        — "sms", "smpp", "telegram", "whatsapp", "messenger", "email"
+├── status (string, indexed)              — "connected", "disconnected", "rate_limited", "error", "disabled"
+├── is_enabled (boolean)                  — whether the channel is active
+├── credentials (JSONB)                   — channel-type-specific auth credentials (write-only)
+├── sender_name (string, nullable)
+├── default_country_code (string, nullable)
+├── rate_limit (integer, nullable)
+├── priority (integer)
+├── retry_count (integer)                 — default: 3
+├── retry_interval (integer)              — default: 60
+├── last_verified_at (timestamp, nullable)
+├── error_message (text, nullable)
+├── created_at (timestamp)
+└── updated_at (timestamp)</code></pre>
+
+        <h3>Credentials per Channel Type</h3>
+        <table>
+          <thead><tr><th>Type</th><th>Credential Fields</th></tr></thead>
+          <tbody>
+            <tr><td><code>sms</code></td><td>provider, api_key, api_secret, sender_number, sender_id</td></tr>
+            <tr><td><code>smpp</code></td><td>host, port, system_id, password, system_type, source_addr, source_addr_ton, source_addr_npi</td></tr>
+            <tr><td><code>telegram</code></td><td>bot_token, webhook_url</td></tr>
+            <tr><td><code>whatsapp</code></td><td>access_token, phone_number_id, business_account_id</td></tr>
+            <tr><td><code>messenger</code></td><td>page_access_token, page_id, app_secret</td></tr>
+            <tr><td><code>email</code></td><td>smtp_host, smtp_port, smtp_username, smtp_password, imap_host, imap_port, imap_username, imap_password, from_name, reply_to</td></tr>
+          </tbody>
+        </table>
+
+        <h2>API Reference</h2>
+
+        <h3>Endpoints</h3>
+        <table>
+          <thead><tr><th>Method</th><th>Endpoint</th><th>Description</th></tr></thead>
+          <tbody>
+            <tr><td><code>POST</code></td><td><code>/v1/channels/</code></td><td>Add a new delivery channel</td></tr>
+            <tr><td><code>GET</code></td><td><code>/v1/channels/</code></td><td>List channels (filtered, sorted, paginated)</td></tr>
+            <tr><td><code>GET</code></td><td><code>/v1/channels/{id}</code></td><td>Get a single channel by ID</td></tr>
+            <tr><td><code>PATCH</code></td><td><code>/v1/channels/{id}</code></td><td>Update channel configuration</td></tr>
+            <tr><td><code>DELETE</code></td><td><code>/v1/channels/{id}</code></td><td>Remove a channel</td></tr>
+          </tbody>
+        </table>
+
+        <h3>Filtering and Sorting</h3>
+        <table>
+          <thead><tr><th>Field</th><th>Allowed Operations</th><th>Sortable</th></tr></thead>
+          <tbody>
+            <tr><td><code>name</code></td><td>eq, contains, icontains</td><td>Yes</td></tr>
+            <tr><td><code>channel_type</code></td><td>eq, in</td><td>Yes</td></tr>
+            <tr><td><code>status</code></td><td>eq, in</td><td>Yes</td></tr>
+            <tr><td><code>is_enabled</code></td><td>eq</td><td>No</td></tr>
+            <tr><td><code>priority</code></td><td>eq, ge, le</td><td>Yes</td></tr>
+            <tr><td><code>created_at</code></td><td>ge, le, range</td><td>Yes</td></tr>
+          </tbody>
+        </table>
+
+        <h3>Example Queries</h3>
+        <pre><code># All SMS channels
+GET /v1/channels/?filter=channel_type:eq:sms&amp;sort=priority:desc
+
+# Connected and enabled channels
+GET /v1/channels/?filter=status:eq:connected&amp;filter=is_enabled:eq:true
+
+# Search channels by name
+GET /v1/channels/?filter=name:icontains:marketing&amp;sort=created_at:desc
+
+# Channels with errors that need attention
+GET /v1/channels/?filter=status:in:error,disconnected&amp;sort=updated_at:desc</code></pre>
+
+        <div class="page-footer">
+          <span>Delivery Channels &mdash; February 2026</span>
+          <a href="https://github.com/Turumba2" target="_blank" rel="noopener">Turumba2 Organization</a>
+        </div>
+      </div>
+
+      <!-- ============================================================ -->
+      <!-- FULL SPECIFICATION -->
+      <!-- ============================================================ -->
+      <div id="full-spec" class="section">
+        <h1>Full Architecture Specification</h1>
+        <p class="subtitle">The complete technical architecture reference &mdash; covering all 13 sections from the root ARCHITECTURE.md document.</p>
+
+        <h2>Document Scope</h2>
+        <p>The full specification covers the following areas in depth, with diagrams, schemas, and code examples:</p>
+
+        <table>
+          <thead><tr><th>#</th><th>Section</th><th>Key Topics</th></tr></thead>
+          <tbody>
+            <tr><td>1</td><td>Executive Summary</td><td>Platform overview, architectural decisions summary</td></tr>
+            <tr><td>2</td><td>System Architecture</td><td>High-level diagram, network architecture, Docker containers</td></tr>
+            <tr><td>3</td><td>Service Components</td><td>Service registry, responsibility breakdown per service</td></tr>
+            <tr><td>4</td><td>Data Architecture</td><td>PostgreSQL schemas (Account + Messaging), MongoDB collections, connection management</td></tr>
+            <tr><td>5</td><td>Authentication &amp; Authorization</td><td>Auth flow diagram, JWT structure, Cognito groups mapping</td></tr>
+            <tr><td>6</td><td>API Gateway Architecture</td><td>KrakenD configuration, context enrichment plugin, request pipeline</td></tr>
+            <tr><td>7</td><td>Backend API Architecture</td><td>Clean architecture layers, CRUDController generics, filter/sort system</td></tr>
+            <tr><td>8</td><td>Event-Driven Architecture</td><td>EventBus, Transactional Outbox, RabbitMQ topology, outbox worker</td></tr>
+            <tr><td>9</td><td>Frontend Architecture</td><td>Turborepo structure, Next.js 16, React 19, Tailwind v4, build pipeline</td></tr>
+            <tr><td>10</td><td>Communication Patterns</td><td>Synchronous (REST), asynchronous (events), request enrichment, error handling</td></tr>
+            <tr><td>11</td><td>Security Architecture</td><td>Five security layers, CORS configuration details</td></tr>
+            <tr><td>12</td><td>Deployment Architecture</td><td>CI/CD pipeline, environment config, container orchestration (Docker Compose)</td></tr>
+            <tr><td>13</td><td>Design Patterns</td><td>11 patterns: API Gateway, Repository, Strategy, Factory, Builder, Singleton, Template Method, Decorator, Transactional Outbox, Domain Events, Topic Exchange</td></tr>
+          </tbody>
+        </table>
+
+        <h2>Key Highlights</h2>
+
+        <div class="collapsible">
+          <div class="collapsible-header">
+            <span>CRUDController Generic Pattern</span>
+            <span class="collapsible-icon">&#x25B6;</span>
+          </div>
+          <div class="collapsible-body">
+            <p>A type-safe abstract base class with four type parameters:</p>
+            <pre><code>CRUDController[T, C, U, R]
+    T = ModelType (SQLAlchemy or Motor model)
+    C = CreateSchema (Pydantic input)
+    U = UpdateSchema (Pydantic input)
+    R = ResponseSchema (Pydantic output)</code></pre>
+
+            <p><strong>Multi-tenancy patterns:</strong></p>
+            <ul>
+              <li><strong>Default filters bypass validation</strong> &mdash; Default filters (e.g., <code>account_id:eq:tenant123</code>) are "trusted system filters" that skip user-provided filter validation</li>
+              <li><strong>Header context injection</strong> &mdash; <code>set_header_context(headers)</code> extracts <code>x-account-ids</code>, <code>x-role-ids</code> from gateway-injected headers</li>
+              <li><strong>Filter merge strategy</strong> &mdash; Provided filters can override defaults only if they share the same field+operation</li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="collapsible">
+          <div class="collapsible-header">
+            <span>Dependency Injection Pattern</span>
+            <span class="collapsible-icon">&#x25B6;</span>
+          </div>
+          <div class="collapsible-body">
+            <pre><code># Dependency Provider
+async def get_user_controller(
+    db: Session = Depends(get_postgres_db)
+) -> UserController:
+    return UserController(
+        db=db,
+        filter_strategy=PostgresFilterStrategy(),
+        sort_strategy=PostgresSortStrategy(),
+    )
+
+# Route Usage
+@router.get("/users")
+async def list_users(
+    controller: UserController = Depends(get_user_controller),
+    current_user: dict = Depends(get_current_user)
+):
+    return await controller.get_all()</code></pre>
+          </div>
+        </div>
+
+        <div class="collapsible">
+          <div class="collapsible-header">
+            <span>Strategy Pattern for Database Operations</span>
+            <span class="collapsible-icon">&#x25B6;</span>
+          </div>
+          <div class="collapsible-body">
+            <pre><code># Abstract Strategy
+class FilterStrategy(ABC):
+    @abstractmethod
+    def apply(self, query, condition, model):
+        pass
+
+# PostgreSQL Implementation
+class PostgresFilterStrategy(FilterStrategy):
+    def apply(self, query, condition, model):
+        field = getattr(model, condition.field)
+        if condition.operation == FilterOperation.EQ:
+            return query.filter(field == condition.value)
+
+# MongoDB Implementation
+class MongoDBFilterStrategy(FilterStrategy):
+    def apply(self, query, condition, model):
+        if condition.operation == FilterOperation.EQ:
+            return {condition.field: condition.value}</code></pre>
+          </div>
+        </div>
+
+        <div class="collapsible">
+          <div class="collapsible-header">
+            <span>Container Orchestration</span>
+            <span class="collapsible-icon">&#x25B6;</span>
+          </div>
+          <div class="collapsible-body">
+            <pre><code># docker-compose.yml structure
+services:
+  krakend:
+    image: bengeos/turumba-gateway:latest
+    depends_on:
+      - turumba_account_api
+      - turumba_messaging_api
+
+  turumba_account_api:
+    image: bengeos/turumba-account-api:main
+    depends_on:
+      - postgres
+      - mongodb
+
+  turumba_messaging_api:
+    image: bengeos/turumba-messaging-api:main
+    depends_on:
+      - postgres
+      - rabbitmq
+
+  rabbitmq:
+    image: rabbitmq:3-management
+
+  postgres:
+    image: postgres:15
+
+  mongodb:
+    image: mongo:6
+
+networks:
+  gateway-network:
+    driver: bridge</code></pre>
+          </div>
+        </div>
+
+        <h2>Architecture Summary</h2>
+        <ul>
+          <li><strong>Scalability</strong> &mdash; Microservices scale independently; outbox workers support horizontal scaling</li>
+          <li><strong>Reliability</strong> &mdash; Transactional Outbox guarantees zero event loss; DLQ for failed messages</li>
+          <li><strong>Maintainability</strong> &mdash; Clean separation of concerns across layers with generic CRUD patterns</li>
+          <li><strong>Security</strong> &mdash; Multi-layer security with managed authentication and multi-tenant isolation</li>
+          <li><strong>Flexibility</strong> &mdash; Database-agnostic patterns, pluggable components, extensible channel types</li>
+          <li><strong>Developer Experience</strong> &mdash; Automated tooling, comprehensive documentation, shared frontend packages</li>
+        </ul>
+
+        <div class="page-footer">
+          <span>Full Specification &mdash; v2.0, February 2026</span>
+          <a href="https://github.com/Turumba2" target="_blank" rel="noopener">Turumba2 Organization</a>
+        </div>
+      </div>
+
+      <!-- ============================================================ -->
+      <!-- ROADMAP -->
+      <!-- ============================================================ -->
+      <div id="roadmap" class="section">
+        <h1>Roadmap &amp; Sprint Plan</h1>
+        <p class="subtitle">12-week (6 &times; 2-week sprints) development plan for Turumba 2.0. Team: 3&ndash;4 developers (2 backend, 1&ndash;2 frontend).</p>
+
+        <h2>Platform Vision</h2>
+        <p>Turumba 2.0 is a multi-tenant SaaS platform that unifies <strong>CRM</strong>, <strong>Customer Support / Helpdesk</strong>, and <strong>Messaging</strong> into a single product. Organizations create accounts, invite team members, manage contacts and conversations, and communicate with customers across email, SMS, and in-app channels.</p>
+
+        <h2>Current State</h2>
+        <table>
+          <thead><tr><th>Repository</th><th>Maturity</th><th>Key Gaps</th></tr></thead>
+          <tbody>
+            <tr><td><strong>turumba_account_api</strong></td><td><span class="status-badge status-green">Production-ready</span></td><td>Password reset, 2FA/MFA, invitation system, audit logging</td></tr>
+            <tr><td><strong>turumba_gateway</strong></td><td><span class="status-badge status-green">Production-ready</span></td><td>CORS too permissive, no rate limiting, no messaging endpoints</td></tr>
+            <tr><td><strong>turumba_messaging_api</strong></td><td><span class="status-badge status-yellow">Skeleton only</span></td><td>Zero domain models, routers, services, middleware, tests</td></tr>
+            <tr><td><strong>turumba_web_core</strong></td><td><span class="status-badge status-yellow">Scaffold only</span></td><td>Zero auth pages, dashboard UI, API integration, state management</td></tr>
+          </tbody>
+        </table>
+
+        <h2>Sprint Plan</h2>
+
+        <!-- Sprint 1 -->
+        <div class="collapsible">
+          <div class="collapsible-header">
+            <span>Sprint 1 &mdash; Foundation &amp; Auth Hardening (Weeks 1&ndash;2)</span>
+            <span class="collapsible-icon">&#x25B6;</span>
+          </div>
+          <div class="collapsible-body">
+            <p><strong>Goal:</strong> Harden auth, stand up messaging API scaffolding, build frontend auth flow.</p>
+            <table>
+              <thead><tr><th>Task</th><th>Repo</th><th>Size</th></tr></thead>
+              <tbody>
+                <tr><td>Implement password reset / forgot password</td><td>account_api</td><td>M</td></tr>
+                <tr><td>Implement change password endpoint</td><td>account_api</td><td>S</td></tr>
+                <tr><td>Implement refresh token rotation</td><td>account_api</td><td>M</td></tr>
+                <tr><td>Add invitation system (invite user by email)</td><td>account_api</td><td>L</td></tr>
+                <tr><td>Port auth middleware to Messaging API</td><td>messaging_api</td><td>S</td></tr>
+                <tr><td>Create Channels model + migration + CRUD</td><td>messaging_api</td><td>M</td></tr>
+                <tr><td>Install Amplify, shadcn/ui, Zustand, react-hook-form</td><td>web_core</td><td>S</td></tr>
+                <tr><td>Build Sign Up, Verify Email, Sign In pages</td><td>web_core</td><td>L</td></tr>
+                <tr><td>Create app shell layout (sidebar, header, breadcrumbs)</td><td>web_core</td><td>M</td></tr>
+                <tr><td>Restrict CORS to specific origins</td><td>gateway</td><td>S</td></tr>
+                <tr><td>Add rate limiting (global)</td><td>gateway</td><td>M</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Sprint 2 -->
+        <div class="collapsible">
+          <div class="collapsible-header">
+            <span>Sprint 2 &mdash; Core Messaging &amp; Dashboard (Weeks 3&ndash;4)</span>
+            <span class="collapsible-icon">&#x25B6;</span>
+          </div>
+          <div class="collapsible-body">
+            <p><strong>Goal:</strong> Core messaging domain models, frontend dashboard + contacts.</p>
+            <table>
+              <thead><tr><th>Task</th><th>Repo</th><th>Size</th></tr></thead>
+              <tbody>
+                <tr><td>Create Conversations model + migration + CRUD</td><td>messaging_api</td><td>L</td></tr>
+                <tr><td>Create Messages model + migration + CRUD</td><td>messaging_api</td><td>L</td></tr>
+                <tr><td>Conversation lifecycle service</td><td>messaging_api</td><td>M</td></tr>
+                <tr><td>Add messaging endpoints to gateway</td><td>gateway</td><td>M</td></tr>
+                <tr><td>Build Dashboard overview page</td><td>web_core</td><td>M</td></tr>
+                <tr><td>Build Contact list page</td><td>web_core</td><td>L</td></tr>
+                <tr><td>Build Contact detail page</td><td>web_core</td><td>M</td></tr>
+                <tr><td>Build Create/Edit contact form</td><td>web_core</td><td>M</td></tr>
+                <tr><td>Add soft-delete for Accounts and Users</td><td>account_api</td><td>M</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Sprint 3 -->
+        <div class="collapsible">
+          <div class="collapsible-header">
+            <span>Sprint 3 &mdash; Inbox &amp; Real-Time (Weeks 5&ndash;6)</span>
+            <span class="collapsible-icon">&#x25B6;</span>
+          </div>
+          <div class="collapsible-body">
+            <p><strong>Goal:</strong> Inbox / helpdesk UI, WebSocket real-time messaging.</p>
+            <table>
+              <thead><tr><th>Task</th><th>Repo</th><th>Size</th></tr></thead>
+              <tbody>
+                <tr><td>WebSocket support in Messaging API</td><td>messaging_api</td><td>L</td></tr>
+                <tr><td>Agent assignment logic (round-robin, manual)</td><td>messaging_api</td><td>M</td></tr>
+                <tr><td>Message attachments model + S3 integration</td><td>messaging_api</td><td>L</td></tr>
+                <tr><td>Build Inbox page &mdash; conversation list (split view)</td><td>web_core</td><td>L</td></tr>
+                <tr><td>Build Message thread view</td><td>web_core</td><td>L</td></tr>
+                <tr><td>Build Message composer</td><td>web_core</td><td>M</td></tr>
+                <tr><td>Real-time WebSocket integration in frontend</td><td>web_core</td><td>L</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Sprint 4 -->
+        <div class="collapsible">
+          <div class="collapsible-header">
+            <span>Sprint 4 &mdash; CRM Features (Weeks 7&ndash;8)</span>
+            <span class="collapsible-icon">&#x25B6;</span>
+          </div>
+          <div class="collapsible-body">
+            <p><strong>Goal:</strong> Contact management depth, tags, segments, import/export.</p>
+            <table>
+              <thead><tr><th>Task</th><th>Repo</th><th>Size</th></tr></thead>
+              <tbody>
+                <tr><td>Contact tags and custom fields</td><td>account_api</td><td>M</td></tr>
+                <tr><td>Contact segments / saved filters</td><td>account_api</td><td>M</td></tr>
+                <tr><td>Bulk operations (batch CRUD)</td><td>account_api</td><td>L</td></tr>
+                <tr><td>Contact import (CSV upload)</td><td>account_api</td><td>L</td></tr>
+                <tr><td>Audit log model + middleware</td><td>account_api</td><td>L</td></tr>
+                <tr><td>Build Contact tags management UI</td><td>web_core</td><td>M</td></tr>
+                <tr><td>Build Contact import UI</td><td>web_core</td><td>L</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Sprint 5 -->
+        <div class="collapsible">
+          <div class="collapsible-header">
+            <span>Sprint 5 &mdash; Integrations &amp; Automation (Weeks 9&ndash;10)</span>
+            <span class="collapsible-icon">&#x25B6;</span>
+          </div>
+          <div class="collapsible-body">
+            <p><strong>Goal:</strong> Channel integrations, automation rules, webhook support.</p>
+            <table>
+              <thead><tr><th>Task</th><th>Repo</th><th>Size</th></tr></thead>
+              <tbody>
+                <tr><td>Email channel integration (inbound + outbound)</td><td>messaging_api</td><td>L</td></tr>
+                <tr><td>SMS channel integration (Twilio)</td><td>messaging_api</td><td>L</td></tr>
+                <tr><td>Automation rules engine</td><td>messaging_api</td><td>L</td></tr>
+                <tr><td>Template rendering with variable substitution</td><td>messaging_api</td><td>M</td></tr>
+                <tr><td>Build Channel configuration page</td><td>web_core</td><td>L</td></tr>
+                <tr><td>Build Template management UI</td><td>web_core</td><td>M</td></tr>
+                <tr><td>Build Team members page</td><td>web_core</td><td>M</td></tr>
+                <tr><td>MFA/2FA setup endpoint</td><td>account_api</td><td>M</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Sprint 6 -->
+        <div class="collapsible">
+          <div class="collapsible-header">
+            <span>Sprint 6 &mdash; Polish, Testing &amp; Documentation (Weeks 11&ndash;12)</span>
+            <span class="collapsible-icon">&#x25B6;</span>
+          </div>
+          <div class="collapsible-body">
+            <p><strong>Goal:</strong> Harden everything, raise test coverage, performance, accessibility, docs.</p>
+            <table>
+              <thead><tr><th>Task</th><th>Repo</th><th>Size</th></tr></thead>
+              <tbody>
+                <tr><td>Raise Account API test coverage to 80%</td><td>account_api</td><td>L</td></tr>
+                <tr><td>Raise Messaging API test coverage to 80%</td><td>messaging_api</td><td>L</td></tr>
+                <tr><td>Structured JSON logging across both APIs</td><td>both APIs</td><td>M</td></tr>
+                <tr><td>Request ID correlation (X-Trace-ID)</td><td>gateway + APIs</td><td>M</td></tr>
+                <tr><td>Performance audit &mdash; N+1 queries, slow endpoints</td><td>both APIs</td><td>M</td></tr>
+                <tr><td>Build User profile page</td><td>web_core</td><td>M</td></tr>
+                <tr><td>Accessibility audit (WCAG 2.1 AA)</td><td>web_core</td><td>M</td></tr>
+                <tr><td>End-to-end smoke tests</td><td>gateway</td><td>L</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <h2>Risk Register</h2>
+        <table>
+          <thead><tr><th>#</th><th>Risk</th><th>Impact</th><th>Mitigation</th></tr></thead>
+          <tbody>
+            <tr><td>1</td><td>KrakenD WebSocket proxy unreliable</td><td>High</td><td>Fallback: frontend connects directly to Messaging API for WebSocket</td></tr>
+            <tr><td>2</td><td>Cognito rate limits on auth calls</td><td>Medium</td><td>Token caching, batch context lookups, request throttling at gateway</td></tr>
+            <tr><td>3</td><td>Messaging API falls behind schedule</td><td>High</td><td>Reuses Account API patterns; reduce scope to core entities first</td></tr>
+            <tr><td>4</td><td>Frontend auth complexity with Amplify</td><td>Medium</td><td>Alternative: backend-only auth with httpOnly cookie</td></tr>
+            <tr><td>5</td><td>Multi-tenant data leakage</td><td>Critical</td><td>Account scoping at service layer + integration tests</td></tr>
+          </tbody>
+        </table>
+
+        <h2>Post-Roadmap Backlog (v2.1+)</h2>
+        <ul>
+          <li>WhatsApp Business API channel integration</li>
+          <li>Telegram Bot API channel integration</li>
+          <li>Facebook Messenger channel integration</li>
+          <li>AI-powered reply suggestions (LLM-based)</li>
+          <li>Chatbot / auto-responder builder (no-code flow editor)</li>
+          <li>Mobile app (React Native or Flutter)</li>
+          <li>Advanced analytics dashboard</li>
+          <li>Knowledge base / help center</li>
+          <li>Billing &amp; subscription management (Stripe)</li>
+          <li>SSO / SAML for enterprise customers</li>
+          <li>Load testing &amp; horizontal scaling strategy</li>
+        </ul>
+
+        <div class="page-footer">
+          <span>Roadmap &mdash; Last updated February 2026</span>
+          <a href="https://github.com/Turumba2" target="_blank" rel="noopener">Turumba2 Organization</a>
+        </div>
+      </div>
+
+    </div><!-- end .content -->
+  </main>
+</div><!-- end .layout -->
+
+<script src="script.js"></script>
+</body>
+</html>
