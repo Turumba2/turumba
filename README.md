@@ -420,7 +420,8 @@ Detailed platform documentation lives in `docs/`:
 | [WHAT_IS_TURUMBA.md](./docs/WHAT_IS_TURUMBA.md) | High-level platform overview, architecture diagram, technology stack |
 | [TURUMBA_MESSAGING.md](./docs/TURUMBA_MESSAGING.md) | Messaging system spec — messages, templates, group messaging, scheduled messages, event infrastructure |
 | [TURUMBA_DELIVERY_CHANNELS.md](./docs/TURUMBA_DELIVERY_CHANNELS.md) | Delivery channel types, credentials, configuration, lifecycle, API reference |
-| [ARCHITECTURE.md](./ARCHITECTURE.md) | Comprehensive technical architecture document |
+| [TURUMBA_ARCHITECTURE.md](./docs/TURUMBA_ARCHITECTURE.md) | Architecture overview — services, patterns, event system, data models, security |
+| [ARCHITECTURE.md](./ARCHITECTURE.md) | Full technical architecture specification with diagrams and code examples |
 
 ### Task Specifications
 

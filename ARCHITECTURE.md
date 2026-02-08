@@ -1345,6 +1345,7 @@ The Turumba 2.0 platform architecture provides:
 ## Related Documentation
 
 - [What is Turumba?](./docs/WHAT_IS_TURUMBA.md) — High-level platform overview
+- [Turumba Architecture Overview](./docs/TURUMBA_ARCHITECTURE.md) — Reader-friendly architecture overview
 - [Turumba Messaging](./docs/TURUMBA_MESSAGING.md) — Detailed messaging system spec
 - [Turumba Delivery Channels](./docs/TURUMBA_DELIVERY_CHANNELS.md) — Delivery channel types, credentials, lifecycle
 
