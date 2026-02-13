@@ -31,6 +31,14 @@
         <span class="nav-link-icon">&#x1F3E0;</span> Overview
       </a>
 
+      <div class="nav-section-title">Project</div>
+      <a class="nav-link" data-section="project-status">
+        <span class="nav-link-icon">&#x1F4CB;</span> Project Status
+      </a>
+      <a class="nav-link" data-section="issues">
+        <span class="nav-link-icon">&#x1F41B;</span> GitHub Issues
+      </a>
+
       <div class="nav-section-title">Platform</div>
       <a class="nav-link" data-section="architecture">
         <span class="nav-link-icon">&#x1F3D7;</span> Architecture
@@ -227,6 +235,346 @@
       </div>
 
       <!-- ============================================================ -->
+      <!-- PROJECT STATUS -->
+      <!-- ============================================================ -->
+      <div id="project-status" class="section">
+        <h1>Project Status</h1>
+        <p class="subtitle">Implementation audit and task tracking across all Turumba 2.0 services. Last updated: February 13, 2026.</p>
+
+        <h2>Implementation Summary</h2>
+
+        <div class="feature-grid">
+          <div class="feature-card">
+            <div class="feature-card-icon">&#x2705;</div>
+            <h4>Account API</h4>
+            <p>All entities complete &mdash; Users, Accounts, Roles, Contacts, Persons, Auth, Context. 50% test coverage enforced.</p>
+          </div>
+          <div class="feature-card">
+            <div class="feature-card-icon">&#x1F7E1;</div>
+            <h4>Messaging API</h4>
+            <p>5/6 backend tasks DONE. Event infrastructure built but not yet wired into services (BE-006 partial). 80% coverage in CI.</p>
+          </div>
+          <div class="feature-card">
+            <div class="feature-card-icon">&#x2705;</div>
+            <h4>Gateway</h4>
+            <p>51 endpoints fully configured. Context-enricher plugin active with 10 wildcard patterns across all entities.</p>
+          </div>
+          <div class="feature-card">
+            <div class="feature-card-icon">&#x1F534;</div>
+            <h4>Web Core</h4>
+            <p>Auth complete. Table builder done. 0/10 messaging feature pages started. Frontend is the critical path.</p>
+          </div>
+        </div>
+
+        <h2>Account API &mdash; Entity Status</h2>
+        <table>
+          <thead><tr><th>Entity</th><th>Model</th><th>Schema</th><th>Controller</th><th>Service</th><th>Router</th><th>Tests</th></tr></thead>
+          <tbody>
+            <tr><td><strong>User</strong></td><td><span class="status-badge status-green">Done</span></td><td><span class="status-badge status-green">Done</span></td><td><span class="status-badge status-green">Done</span></td><td><span class="status-badge status-green">Done</span></td><td><span class="status-badge status-green">Done</span></td><td><span class="status-badge status-green">Done</span></td></tr>
+            <tr><td><strong>Account</strong></td><td><span class="status-badge status-green">Done</span></td><td><span class="status-badge status-green">Done</span></td><td><span class="status-badge status-green">Done</span></td><td><span class="status-badge status-green">Done</span></td><td><span class="status-badge status-green">Done</span></td><td><span class="status-badge status-green">Done</span></td></tr>
+            <tr><td><strong>Role</strong></td><td><span class="status-badge status-green">Done</span></td><td><span class="status-badge status-green">Done</span></td><td><span class="status-badge status-green">Done</span></td><td><span class="status-badge status-green">Done</span></td><td><span class="status-badge status-green">Done</span></td><td><span class="status-badge status-green">Done</span></td></tr>
+            <tr><td><strong>AccountUser</strong></td><td><span class="status-badge status-green">Done</span></td><td><span class="status-badge status-green">Done</span></td><td><span class="status-badge status-green">Done</span></td><td><span class="status-badge status-green">Done</span></td><td><span class="status-badge status-green">Done</span></td><td><span class="status-badge status-green">Done</span></td></tr>
+            <tr><td><strong>Contact</strong> (MongoDB)</td><td><span class="status-badge status-green">Done</span></td><td><span class="status-badge status-green">Done</span></td><td><span class="status-badge status-green">Done</span></td><td><span class="status-badge status-green">Done</span></td><td><span class="status-badge status-green">Done</span></td><td><span class="status-badge status-green">Done</span></td></tr>
+            <tr><td><strong>Person</strong> (MongoDB)</td><td><span class="status-badge status-green">Done</span></td><td><span class="status-badge status-green">Done</span></td><td><span class="status-badge status-green">Done</span></td><td><span class="status-badge status-green">Done</span></td><td><span class="status-badge status-green">Done</span></td><td><span class="status-badge status-green">Done</span></td></tr>
+            <tr><td><strong>Auth</strong> (Cognito)</td><td>&mdash;</td><td><span class="status-badge status-green">Done</span></td><td><span class="status-badge status-green">Done</span></td><td><span class="status-badge status-green">Done</span></td><td><span class="status-badge status-green">Done</span></td><td><span class="status-badge status-green">Done</span></td></tr>
+            <tr><td><strong>Context</strong></td><td>&mdash;</td><td>&mdash;</td><td><span class="status-badge status-green">Done</span></td><td>&mdash;</td><td><span class="status-badge status-green">Done</span></td><td>&mdash;</td></tr>
+          </tbody>
+        </table>
+
+        <h2>Messaging API &mdash; Entity Status</h2>
+        <table>
+          <thead><tr><th>Entity</th><th>Model</th><th>Schema</th><th>Controller</th><th>Service</th><th>Router</th><th>Tests</th></tr></thead>
+          <tbody>
+            <tr><td><strong>Channel</strong></td><td><span class="status-badge status-green">Done</span></td><td><span class="status-badge status-green">Done</span></td><td><span class="status-badge status-green">Done</span></td><td><span class="status-badge status-green">Done</span></td><td><span class="status-badge status-green">Done</span></td><td><span class="status-badge status-green">Done</span></td></tr>
+            <tr><td><strong>Message</strong></td><td><span class="status-badge status-green">Done</span></td><td><span class="status-badge status-green">Done</span></td><td><span class="status-badge status-green">Done</span></td><td><span class="status-badge status-green">Done</span></td><td><span class="status-badge status-green">Done</span></td><td><span class="status-badge status-green">Done</span></td></tr>
+            <tr><td><strong>Template</strong></td><td><span class="status-badge status-green">Done</span></td><td><span class="status-badge status-green">Done</span></td><td><span class="status-badge status-green">Done</span></td><td><span class="status-badge status-green">Done</span></td><td><span class="status-badge status-green">Done</span></td><td><span class="status-badge status-green">Done</span></td></tr>
+            <tr><td><strong>GroupMessage</strong></td><td><span class="status-badge status-green">Done</span></td><td><span class="status-badge status-green">Done</span></td><td><span class="status-badge status-green">Done</span></td><td><span class="status-badge status-green">Done</span></td><td><span class="status-badge status-green">Done</span></td><td><span class="status-badge status-green">Done</span></td></tr>
+            <tr><td><strong>ScheduledMessage</strong></td><td><span class="status-badge status-green">Done</span></td><td><span class="status-badge status-green">Done</span></td><td><span class="status-badge status-green">Done</span></td><td><span class="status-badge status-green">Done</span></td><td><span class="status-badge status-green">Done</span></td><td><span class="status-badge status-green">Done</span></td></tr>
+            <tr><td><strong>OutboxEvent</strong></td><td><span class="status-badge status-green">Done</span></td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td><span class="status-badge status-green">Done</span></td></tr>
+            <tr><td><strong>EventBus</strong></td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td><span class="status-badge status-green">Done</span></td><td>&mdash;</td><td><span class="status-badge status-green">Done</span></td></tr>
+            <tr><td><strong>OutboxMiddleware</strong></td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td><span class="status-badge status-green">Done</span></td><td>&mdash;</td><td><span class="status-badge status-green">Done</span></td></tr>
+            <tr><td><strong>OutboxWorker</strong></td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td><span class="status-badge status-green">Done</span></td><td>&mdash;</td><td><span class="status-badge status-gray">N/A</span></td></tr>
+          </tbody>
+        </table>
+        <blockquote>
+          <strong>Event Integration Gap:</strong> The EventBus, OutboxMiddleware, and OutboxWorker are all implemented and unit-tested, but they are <strong>not yet wired</strong> into the service layer. Services create entities without emitting domain events. This is the remaining work in BE-006.
+        </blockquote>
+
+        <h2>Web Core &mdash; Feature Status</h2>
+        <table>
+          <thead><tr><th>Feature</th><th>App</th><th>Status</th></tr></thead>
+          <tbody>
+            <tr><td>Sign In / Sign Up</td><td>turumba</td><td><span class="status-badge status-green">Done</span></td></tr>
+            <tr><td>Email Verification (OTP)</td><td>turumba</td><td><span class="status-badge status-green">Done</span></td></tr>
+            <tr><td>Server-side Auth Guard</td><td>turumba</td><td><span class="status-badge status-green">Done</span></td></tr>
+            <tr><td>2FA / TOTP</td><td>turumba</td><td><span class="status-badge status-yellow">UI Only</span></td></tr>
+            <tr><td>Forgot / Reset Password</td><td>turumba</td><td><span class="status-badge status-yellow">UI Only</span></td></tr>
+            <tr><td>Google SSO</td><td>turumba</td><td><span class="status-badge status-yellow">UI Only</span></td></tr>
+            <tr><td>Generic Table Builder</td><td>@repo/ui</td><td><span class="status-badge status-green">Done</span></td></tr>
+            <tr><td>Advanced Table Filter</td><td>turumba</td><td><span class="status-badge status-blue">In Progress</span></td></tr>
+            <tr><td>Dashboard</td><td>turumba</td><td><span class="status-badge status-gray">Skeleton</span></td></tr>
+            <tr><td>Shared UI Library (24 components)</td><td>@repo/ui</td><td><span class="status-badge status-green">Done</span></td></tr>
+          </tbody>
+        </table>
+
+        <h2>Backend Task Specs vs Implementation</h2>
+        <table>
+          <thead><tr><th>Task</th><th>Title</th><th>Issue</th><th>Assignee</th><th>Status</th></tr></thead>
+          <tbody>
+            <tr><td><strong>BE-001</strong></td><td>Messages CRUD API</td><td><a href="https://github.com/Turumba2/turumba_messaging_api/issues/8" target="_blank">#8</a></td><td>tesfayegirma-116</td><td><span class="status-badge status-green">Done</span></td></tr>
+            <tr><td><strong>BE-002</strong></td><td>Delivery Channels CRUD API</td><td><a href="https://github.com/Turumba2/turumba_messaging_api/issues/9" target="_blank">#9</a></td><td>tesfayegirma-116</td><td><span class="status-badge status-green">Done</span></td></tr>
+            <tr><td><strong>BE-003</strong></td><td>Template Messages CRUD API</td><td><a href="https://github.com/Turumba2/turumba_messaging_api/issues/10" target="_blank">#10</a></td><td>tesfayegirma-116</td><td><span class="status-badge status-green">Done</span></td></tr>
+            <tr><td><strong>BE-004</strong></td><td>Group Messages CRUD API</td><td><a href="https://github.com/Turumba2/turumba_messaging_api/issues/11" target="_blank">#11</a></td><td>tesfayegirma-116</td><td><span class="status-badge status-green">Done</span></td></tr>
+            <tr><td><strong>BE-005</strong></td><td>Scheduled Messages CRUD API</td><td><a href="https://github.com/Turumba2/turumba_messaging_api/issues/12" target="_blank">#12</a></td><td>tesfayegirma-116</td><td><span class="status-badge status-green">Done</span></td></tr>
+            <tr><td><strong>BE-006</strong></td><td>Event Infrastructure (Outbox + RabbitMQ)</td><td><a href="https://github.com/Turumba2/turumba_messaging_api/issues/13" target="_blank">#13</a></td><td>bengeos, tesfayegirma-116</td><td><span class="status-badge status-yellow">Partial</span></td></tr>
+          </tbody>
+        </table>
+
+        <h2>Frontend Task Specs vs Implementation</h2>
+        <table>
+          <thead><tr><th>Task</th><th>Title</th><th>Issue</th><th>Assignee</th><th>Status</th></tr></thead>
+          <tbody>
+            <tr><td><strong>FE-001</strong></td><td>Create New Message Page</td><td><a href="https://github.com/Turumba2/turumba_web_core/issues/7" target="_blank">#7</a></td><td>nahomfix</td><td><span class="status-badge status-gray">Not Started</span></td></tr>
+            <tr><td><strong>FE-002</strong></td><td>Delivery Channels Table View</td><td><a href="https://github.com/Turumba2/turumba_web_core/issues/8" target="_blank">#8</a></td><td>nahomfix</td><td><span class="status-badge status-gray">Not Started</span></td></tr>
+            <tr><td><strong>FE-003</strong></td><td>Create New Delivery Channel</td><td><a href="https://github.com/Turumba2/turumba_web_core/issues/9" target="_blank">#9</a></td><td>nahomfix</td><td><span class="status-badge status-gray">Not Started</span></td></tr>
+            <tr><td><strong>FE-004</strong></td><td>Messages Table View</td><td><a href="https://github.com/Turumba2/turumba_web_core/issues/10" target="_blank">#10</a></td><td>nahomfix</td><td><span class="status-badge status-gray">Not Started</span></td></tr>
+            <tr><td><strong>FE-005</strong></td><td>Template Messages Table View</td><td><a href="https://github.com/Turumba2/turumba_web_core/issues/11" target="_blank">#11</a></td><td>nahomfix</td><td><span class="status-badge status-gray">Not Started</span></td></tr>
+            <tr><td><strong>FE-006</strong></td><td>Create/Edit Template Message</td><td><a href="https://github.com/Turumba2/turumba_web_core/issues/12" target="_blank">#12</a></td><td>nahomfix</td><td><span class="status-badge status-gray">Not Started</span></td></tr>
+            <tr><td><strong>FE-007</strong></td><td>Group Messages Table View</td><td><a href="https://github.com/Turumba2/turumba_web_core/issues/13" target="_blank">#13</a></td><td>nahomfix</td><td><span class="status-badge status-gray">Not Started</span></td></tr>
+            <tr><td><strong>FE-008</strong></td><td>Create Group Message Page</td><td><a href="https://github.com/Turumba2/turumba_web_core/issues/14" target="_blank">#14</a></td><td>nahomfix</td><td><span class="status-badge status-gray">Not Started</span></td></tr>
+            <tr><td><strong>FE-009</strong></td><td>Scheduled Messages Table View</td><td><a href="https://github.com/Turumba2/turumba_web_core/issues/15" target="_blank">#15</a></td><td>nahomfix</td><td><span class="status-badge status-gray">Not Started</span></td></tr>
+            <tr><td><strong>FE-010</strong></td><td>Create/Edit Scheduled Message</td><td><a href="https://github.com/Turumba2/turumba_web_core/issues/16" target="_blank">#16</a></td><td>nahomfix</td><td><span class="status-badge status-gray">Not Started</span></td></tr>
+          </tbody>
+        </table>
+
+        <h2>Recommended Build Order (Frontend)</h2>
+        <p>Following the dependency chain &mdash; backend APIs are all ready:</p>
+        <ol>
+          <li><strong>FE-002 &rarr; FE-003</strong> &mdash; Delivery Channels table + Create channel (no FE dependencies)</li>
+          <li><strong>FE-005 &rarr; FE-006</strong> &mdash; Templates table + Create/Edit template (no FE dependencies)</li>
+          <li><strong>FE-004 &rarr; FE-001</strong> &mdash; Messages table + New message compose (needs channels)</li>
+          <li><strong>FE-007 &rarr; FE-008</strong> &mdash; Group messages table + Create group message (needs templates + channels)</li>
+          <li><strong>FE-009 &rarr; FE-010</strong> &mdash; Scheduled messages table + Create/Edit scheduled (needs all above)</li>
+        </ol>
+
+        <h2>Gateway &mdash; Endpoint Summary</h2>
+        <table>
+          <thead><tr><th>Backend</th><th>Endpoint Group</th><th>Routes</th></tr></thead>
+          <tbody>
+            <tr><td>Account API</td><td>/v1/auth/*</td><td>4 (login, register, verify-email, resend-verification)</td></tr>
+            <tr><td>Account API</td><td>/v1/accounts/*</td><td>5 (CRUD)</td></tr>
+            <tr><td>Account API</td><td>/v1/users/*</td><td>5 (CRUD)</td></tr>
+            <tr><td>Account API</td><td>/v1/persons/*</td><td>5 (CRUD)</td></tr>
+            <tr><td>Account API</td><td>/v1/groups/*</td><td>5 (CRUD)</td></tr>
+            <tr><td>Account API</td><td>/v1/context</td><td>1 (GET basic)</td></tr>
+            <tr><td>Messaging API</td><td>/v1/channels/*</td><td>5 (CRUD)</td></tr>
+            <tr><td>Messaging API</td><td>/v1/messages/*</td><td>5 (CRUD)</td></tr>
+            <tr><td>Messaging API</td><td>/v1/templates/*</td><td>5 (CRUD)</td></tr>
+            <tr><td>Messaging API</td><td>/v1/group-messages/*</td><td>5 (CRUD)</td></tr>
+            <tr><td>Messaging API</td><td>/v1/scheduled-messages/*</td><td>5 (CRUD)</td></tr>
+          </tbody>
+        </table>
+        <p><strong>Total: 51 gateway endpoints configured</strong></p>
+
+        <div class="page-footer">
+          <span>Project Status &mdash; Last updated February 13, 2026</span>
+          <a href="https://github.com/Turumba2" target="_blank" rel="noopener">Turumba2 Organization</a>
+        </div>
+      </div>
+
+      <!-- ============================================================ -->
+      <!-- GITHUB ISSUES -->
+      <!-- ============================================================ -->
+      <div id="issues" class="section">
+        <h1>GitHub Issues</h1>
+        <p class="subtitle">All tracked issues across the four Turumba 2.0 repositories. Updated: February 13, 2026.</p>
+
+        <h2>Issue Summary</h2>
+        <table>
+          <thead><tr><th>Repository</th><th>Open</th><th>Closed</th><th>Total</th></tr></thead>
+          <tbody>
+            <tr><td><strong><a href="https://github.com/Turumba2/turumba_messaging_api/issues" target="_blank">turumba_messaging_api</a></strong></td><td>2</td><td>10</td><td>12</td></tr>
+            <tr><td><strong><a href="https://github.com/Turumba2/turumba_web_core/issues" target="_blank">turumba_web_core</a></strong></td><td>13</td><td>3</td><td>16</td></tr>
+            <tr><td><strong><a href="https://github.com/Turumba2/turumba_account_api/issues" target="_blank">turumba_account_api</a></strong></td><td>31</td><td>2</td><td>33</td></tr>
+            <tr><td><strong><a href="https://github.com/Turumba2/turumba_gateway/issues" target="_blank">turumba_gateway</a></strong></td><td>1</td><td>1</td><td>2</td></tr>
+            <tr><td><strong>Total</strong></td><td><strong>47</strong></td><td><strong>16</strong></td><td><strong>63</strong></td></tr>
+          </tbody>
+        </table>
+
+        <h2>turumba_messaging_api</h2>
+
+        <h3>Open (2)</h3>
+        <table>
+          <thead><tr><th>#</th><th>Title</th><th>Assignee</th><th>Created</th></tr></thead>
+          <tbody>
+            <tr><td><a href="https://github.com/Turumba2/turumba_messaging_api/issues/26" target="_blank">26</a></td><td>Integrate Doppler for environment variable management</td><td>bengeos</td><td>2026-02-13</td></tr>
+            <tr><td><a href="https://github.com/Turumba2/turumba_messaging_api/issues/13" target="_blank">13</a></td><td>BE-006: Event Infrastructure &mdash; EventBus + Transactional Outbox + RabbitMQ</td><td>bengeos, tesfayegirma-116</td><td>2026-02-08</td></tr>
+          </tbody>
+        </table>
+
+        <h3>Closed (10)</h3>
+        <table>
+          <thead><tr><th>#</th><th>Title</th><th>Assignee</th><th>Closed</th></tr></thead>
+          <tbody>
+            <tr><td><a href="https://github.com/Turumba2/turumba_messaging_api/issues/20" target="_blank">20</a></td><td>refactor: migrate synchronous SQLAlchemy calls to async</td><td>&mdash;</td><td>2026-02-11</td></tr>
+            <tr><td><a href="https://github.com/Turumba2/turumba_messaging_api/issues/12" target="_blank">12</a></td><td>Implement Scheduled Messages CRUD API (BE-005)</td><td>tesfayegirma-116</td><td>2026-02-12</td></tr>
+            <tr><td><a href="https://github.com/Turumba2/turumba_messaging_api/issues/11" target="_blank">11</a></td><td>Implement Group Messages CRUD API (BE-004)</td><td>tesfayegirma-116</td><td>2026-02-12</td></tr>
+            <tr><td><a href="https://github.com/Turumba2/turumba_messaging_api/issues/10" target="_blank">10</a></td><td>Implement Template Messages CRUD API (BE-003)</td><td>tesfayegirma-116</td><td>2026-02-12</td></tr>
+            <tr><td><a href="https://github.com/Turumba2/turumba_messaging_api/issues/9" target="_blank">9</a></td><td>Implement Delivery Channels CRUD API (BE-002)</td><td>tesfayegirma-116</td><td>2026-02-11</td></tr>
+            <tr><td><a href="https://github.com/Turumba2/turumba_messaging_api/issues/8" target="_blank">8</a></td><td>Implement Messages CRUD API (BE-001)</td><td>tesfayegirma-116</td><td>2026-02-11</td></tr>
+            <tr><td><a href="https://github.com/Turumba2/turumba_messaging_api/issues/3" target="_blank">3</a></td><td>Implement Dual Database Support (PostgreSQL + MongoDB)</td><td>tesfayegirma-116</td><td>2026-02-08</td></tr>
+            <tr><td><a href="https://github.com/Turumba2/turumba_messaging_api/issues/2" target="_blank">2</a></td><td>Configure Alembic, Pre-commit Hooks, and Pytest</td><td>tesfayegirma-116</td><td>2026-02-09</td></tr>
+            <tr><td><a href="https://github.com/Turumba2/turumba_messaging_api/issues/1" target="_blank">1</a></td><td>Implement Core Architecture Components</td><td>tesfayegirma-116</td><td>2026-02-08</td></tr>
+          </tbody>
+        </table>
+
+        <h2>turumba_web_core</h2>
+
+        <h3>Open (13)</h3>
+        <table>
+          <thead><tr><th>#</th><th>Title</th><th>Assignee</th><th>Created</th></tr></thead>
+          <tbody>
+            <tr><td><a href="https://github.com/Turumba2/turumba_web_core/issues/20" target="_blank">20</a></td><td>Integrate Doppler for environment variable management</td><td>bengeos</td><td>2026-02-13</td></tr>
+            <tr><td><a href="https://github.com/Turumba2/turumba_web_core/issues/16" target="_blank">16</a></td><td>FE-010: Create / Edit Scheduled Message Page</td><td>nahomfix</td><td>2026-02-08</td></tr>
+            <tr><td><a href="https://github.com/Turumba2/turumba_web_core/issues/15" target="_blank">15</a></td><td>FE-009: Scheduled Messages Table View</td><td>nahomfix</td><td>2026-02-08</td></tr>
+            <tr><td><a href="https://github.com/Turumba2/turumba_web_core/issues/14" target="_blank">14</a></td><td>FE-008: Create Group Message Page</td><td>nahomfix</td><td>2026-02-08</td></tr>
+            <tr><td><a href="https://github.com/Turumba2/turumba_web_core/issues/13" target="_blank">13</a></td><td>FE-007: Group Messages Table View</td><td>nahomfix</td><td>2026-02-08</td></tr>
+            <tr><td><a href="https://github.com/Turumba2/turumba_web_core/issues/12" target="_blank">12</a></td><td>FE-006: Create / Edit Template Message Page</td><td>nahomfix</td><td>2026-02-08</td></tr>
+            <tr><td><a href="https://github.com/Turumba2/turumba_web_core/issues/11" target="_blank">11</a></td><td>FE-005: Template Messages Table View</td><td>nahomfix</td><td>2026-02-08</td></tr>
+            <tr><td><a href="https://github.com/Turumba2/turumba_web_core/issues/10" target="_blank">10</a></td><td>FE-004: Messages Table View</td><td>nahomfix</td><td>2026-02-08</td></tr>
+            <tr><td><a href="https://github.com/Turumba2/turumba_web_core/issues/9" target="_blank">9</a></td><td>FE-003: Create New Delivery Channel Page</td><td>nahomfix</td><td>2026-02-08</td></tr>
+            <tr><td><a href="https://github.com/Turumba2/turumba_web_core/issues/8" target="_blank">8</a></td><td>FE-002: Delivery Channels Table View</td><td>nahomfix</td><td>2026-02-08</td></tr>
+            <tr><td><a href="https://github.com/Turumba2/turumba_web_core/issues/7" target="_blank">7</a></td><td>FE-001: Create New Message Compose UI</td><td>nahomfix</td><td>2026-02-08</td></tr>
+            <tr><td><a href="https://github.com/Turumba2/turumba_web_core/issues/6" target="_blank">6</a></td><td>Build Messages Page with multi-channel messaging, filters</td><td>nahomfix</td><td>2026-02-08</td></tr>
+            <tr><td><a href="https://github.com/Turumba2/turumba_web_core/issues/5" target="_blank">5</a></td><td>Build Advanced Table Filter component</td><td>nahomfix</td><td>2026-02-08</td></tr>
+          </tbody>
+        </table>
+
+        <h3>Closed (3)</h3>
+        <table>
+          <thead><tr><th>#</th><th>Title</th><th>Assignee</th><th>Closed</th></tr></thead>
+          <tbody>
+            <tr><td><a href="https://github.com/Turumba2/turumba_web_core/issues/4" target="_blank">4</a></td><td>Implement Generic Table Builder component</td><td>nahomfix</td><td>2026-02-12</td></tr>
+            <tr><td><a href="https://github.com/Turumba2/turumba_web_core/issues/2" target="_blank">2</a></td><td>Extended Auth Pages (Forgot Password, Reset Password, 2FA)</td><td>nahomfix</td><td>2026-02-11</td></tr>
+            <tr><td><a href="https://github.com/Turumba2/turumba_web_core/issues/1" target="_blank">1</a></td><td>Core Auth Pages (Sign Up, Sign In, Email Verify)</td><td>nahomfix</td><td>2026-02-11</td></tr>
+          </tbody>
+        </table>
+
+        <h2>turumba_account_api</h2>
+
+        <div class="collapsible">
+          <div class="collapsible-header">
+            <span>Infrastructure &amp; DevOps (5 issues)</span>
+            <span class="collapsible-icon">&#x25B6;</span>
+          </div>
+          <div class="collapsible-body">
+            <table>
+              <thead><tr><th>#</th><th>Title</th><th>Assignee</th><th>Created</th></tr></thead>
+              <tbody>
+                <tr><td><a href="https://github.com/Turumba2/turumba_account_api/issues/61" target="_blank">61</a></td><td>Integrate Doppler for environment variable management</td><td>bengeos</td><td>2026-02-13</td></tr>
+                <tr><td><a href="https://github.com/Turumba2/turumba_account_api/issues/23" target="_blank">23</a></td><td>Establish CI/CD Pipelines</td><td>bengeos</td><td>2026-01-29</td></tr>
+                <tr><td><a href="https://github.com/Turumba2/turumba_account_api/issues/22" target="_blank">22</a></td><td>Infrastructure &amp; API Gateway Setup</td><td>bengeos</td><td>2026-01-29</td></tr>
+                <tr><td><a href="https://github.com/Turumba2/turumba_account_api/issues/20" target="_blank">20</a></td><td>Provision Cloud Infrastructure</td><td>&mdash;</td><td>2026-01-29</td></tr>
+                <tr><td><a href="https://github.com/Turumba2/turumba_account_api/issues/19" target="_blank">19</a></td><td>Provision Cloud Infrastructure (duplicate)</td><td>&mdash;</td><td>2026-01-29</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <div class="collapsible">
+          <div class="collapsible-header">
+            <span>Authentication &amp; User Management (8 issues)</span>
+            <span class="collapsible-icon">&#x25B6;</span>
+          </div>
+          <div class="collapsible-body">
+            <table>
+              <thead><tr><th>#</th><th>Title</th><th>Assignee</th><th>Created</th></tr></thead>
+              <tbody>
+                <tr><td><a href="https://github.com/Turumba2/turumba_account_api/issues/56" target="_blank">56</a></td><td>Inactive User Redirection</td><td>nahomfix</td><td>2026-02-06</td></tr>
+                <tr><td><a href="https://github.com/Turumba2/turumba_account_api/issues/53" target="_blank">53</a></td><td>Multi-Org Switcher &amp; Dashboard Access [FE]</td><td>bengeos</td><td>2026-02-03</td></tr>
+                <tr><td><a href="https://github.com/Turumba2/turumba_account_api/issues/29" target="_blank">29</a></td><td>[BE] User Management &amp; Invitation Service (RBAC)</td><td>bengeos</td><td>2026-01-29</td></tr>
+                <tr><td><a href="https://github.com/Turumba2/turumba_account_api/issues/28" target="_blank">28</a></td><td>User Management &amp; Invitations</td><td>bengeos</td><td>2026-01-29</td></tr>
+                <tr><td><a href="https://github.com/Turumba2/turumba_account_api/issues/27" target="_blank">27</a></td><td>Organization Creation &amp; Multi-Tenant Mapping [BE]</td><td>bengeos</td><td>2026-01-29</td></tr>
+                <tr><td><a href="https://github.com/Turumba2/turumba_account_api/issues/26" target="_blank">26</a></td><td>Auth UI &amp; API Integration</td><td>bengeos</td><td>2026-01-29</td></tr>
+                <tr><td><a href="https://github.com/Turumba2/turumba_account_api/issues/25" target="_blank">25</a></td><td>Auth: JWT Authentication &amp; Security Service</td><td>bengeos</td><td>2026-01-29</td></tr>
+                <tr><td><a href="https://github.com/Turumba2/turumba_account_api/issues/24" target="_blank">24</a></td><td>Project Initialization &amp; Navigation Shell [FE]</td><td>bengeos</td><td>2026-01-29</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <div class="collapsible">
+          <div class="collapsible-header">
+            <span>Messaging &amp; Channels (6 issues)</span>
+            <span class="collapsible-icon">&#x25B6;</span>
+          </div>
+          <div class="collapsible-body">
+            <table>
+              <thead><tr><th>#</th><th>Title</th><th>Assignee</th><th>Created</th></tr></thead>
+              <tbody>
+                <tr><td><a href="https://github.com/Turumba2/turumba_account_api/issues/58" target="_blank">58</a></td><td>Implement Sorting and Filtering across all data tables</td><td>nahomfix</td><td>2026-02-06</td></tr>
+                <tr><td><a href="https://github.com/Turumba2/turumba_account_api/issues/57" target="_blank">57</a></td><td>Switching between organization issue</td><td>nahomfix</td><td>2026-02-06</td></tr>
+                <tr><td><a href="https://github.com/Turumba2/turumba_account_api/issues/55" target="_blank">55</a></td><td>[FE] Message Automation &amp; Scheduling Tools</td><td>&mdash;</td><td>2026-02-03</td></tr>
+                <tr><td><a href="https://github.com/Turumba2/turumba_account_api/issues/54" target="_blank">54</a></td><td>[BE] Scheduling &amp; Bulk Messaging Engine</td><td>bengeos</td><td>2026-02-03</td></tr>
+                <tr><td><a href="https://github.com/Turumba2/turumba_account_api/issues/38" target="_blank">38</a></td><td>WhatsApp API &amp; Webhook Integration</td><td>bengeos</td><td>2026-01-30</td></tr>
+                <tr><td><a href="https://github.com/Turumba2/turumba_account_api/issues/36" target="_blank">36</a></td><td>[BE] Messaging Service &amp; Multi-Platform Normalization</td><td>bengeos</td><td>2026-01-30</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <div class="collapsible">
+          <div class="collapsible-header">
+            <span>Real-time &amp; Dashboard (6 issues)</span>
+            <span class="collapsible-icon">&#x25B6;</span>
+          </div>
+          <div class="collapsible-body">
+            <table>
+              <thead><tr><th>#</th><th>Title</th><th>Assignee</th><th>Created</th></tr></thead>
+              <tbody>
+                <tr><td><a href="https://github.com/Turumba2/turumba_account_api/issues/43" target="_blank">43</a></td><td>Build Dashboard Analytics</td><td>bengeos</td><td>2026-01-30</td></tr>
+                <tr><td><a href="https://github.com/Turumba2/turumba_account_api/issues/42" target="_blank">42</a></td><td>Backend Dashboard APIs: Message counters</td><td>bengeos</td><td>2026-01-30</td></tr>
+                <tr><td><a href="https://github.com/Turumba2/turumba_account_api/issues/41" target="_blank">41</a></td><td>WebSocket client for real-time message updates</td><td>bengeos</td><td>2026-01-30</td></tr>
+                <tr><td><a href="https://github.com/Turumba2/turumba_account_api/issues/40" target="_blank">40</a></td><td>Set up RabbitMQ for Event-Driven Architecture</td><td>bengeos</td><td>2026-01-30</td></tr>
+                <tr><td><a href="https://github.com/Turumba2/turumba_account_api/issues/39" target="_blank">39</a></td><td>Interactive Inbox Integration</td><td>&mdash;</td><td>2026-01-30</td></tr>
+                <tr><td><a href="https://github.com/Turumba2/turumba_account_api/issues/37" target="_blank">37</a></td><td>[FE] Unified Team Inbox &amp; Real-Time Interaction</td><td>bengeos</td><td>2026-01-30</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <div class="collapsible">
+          <div class="collapsible-header">
+            <span>Contacts (2 issues)</span>
+            <span class="collapsible-icon">&#x25B6;</span>
+          </div>
+          <div class="collapsible-body">
+            <table>
+              <thead><tr><th>#</th><th>Title</th><th>Assignee</th><th>Created</th></tr></thead>
+              <tbody>
+                <tr><td><a href="https://github.com/Turumba2/turumba_account_api/issues/31" target="_blank">31</a></td><td>Contact CRUD / Import &amp; Export [FE]</td><td>bengeos</td><td>2026-01-29</td></tr>
+                <tr><td><a href="https://github.com/Turumba2/turumba_account_api/issues/30" target="_blank">30</a></td><td>Contact CRUD &amp; Grouping [BE]</td><td>bengeos</td><td>2026-01-29</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <h2>turumba_gateway</h2>
+        <table>
+          <thead><tr><th>#</th><th>Title</th><th>State</th><th>Assignee</th></tr></thead>
+          <tbody>
+            <tr><td><a href="https://github.com/Turumba2/turumba_gateway/issues/6" target="_blank">6</a></td><td>CORS preflight requests failing on deployed instance</td><td><span class="status-badge status-green">Closed</span></td><td>bengeos</td></tr>
+            <tr><td><a href="https://github.com/Turumba2/turumba_gateway/issues/5" target="_blank">5</a></td><td>Test task 0111</td><td><span class="status-badge status-blue">Open</span></td><td>&mdash;</td></tr>
+          </tbody>
+        </table>
+
+        <div class="page-footer">
+          <span>GitHub Issues &mdash; Last updated February 13, 2026</span>
+          <a href="https://github.com/Turumba2" target="_blank" rel="noopener">Turumba2 Organization</a>
+        </div>
+      </div>
+
+      <!-- ============================================================ -->
       <!-- ARCHITECTURE -->
       <!-- ============================================================ -->
       <div id="architecture" class="section">
@@ -320,7 +668,7 @@ Post-Processing
 ├── krakend.tmpl           # Main template — imports partials via Go templates
 ├── partials/
 │   ├── configs/           # cors.json, logging.json, plugin.json
-│   └── endpoints/         # auth.json, accounts.json, users.json, context.json
+│   └── endpoints/         # auth, accounts, users, context, channels, messages, templates, ...
 ├── lua/                   # Lua scripts for request/response modification
 └── plugins/               # Compiled Go plugins (.so files)</code></pre>
 

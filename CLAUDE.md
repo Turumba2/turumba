@@ -10,7 +10,7 @@ Each service is a **separate git repository** within this codebase directory:
 
 - **turumba_account_api** - FastAPI backend for accounts, users, contacts, and authentication (Python 3.11)
 - **turumba_gateway** - KrakenD 2.12.1 API Gateway (single entry point on port 8080)
-- **turumba_messaging_api** - FastAPI messaging service, skeleton stage (Python 3.12) — base models and health check only, no domain entities or routers yet
+- **turumba_messaging_api** - FastAPI messaging service (Python 3.12) — channels, messages, templates, group messages, scheduled messages, and outbox event infrastructure
 - **turumba_web_core** - Turborepo monorepo for Next.js 16 frontend applications
 
 ## Documentation
@@ -105,7 +105,7 @@ Key patterns:
 
 - Template-based: `config/krakend.tmpl` imports partials via Go templates
 - `FC_ENABLE=1` and `FC_PARTIALS` env vars enable file composition in Docker
-- Endpoint definitions in `config/partials/endpoints/` (auth, accounts, users, context)
+- Endpoint definitions in `config/partials/endpoints/` (auth, accounts, users, context, channels, messages, templates, group-messages, scheduled-messages, groups, persons)
 - Go plugin output: `config/plugins/context-enricher.so`
 - Lua scripts for request/response modification in `config/lua/`
 - Uses `no-op` encoding for response passthrough
@@ -148,9 +148,30 @@ cd turumba_messaging_api
 python -m venv .venv && source .venv/bin/activate
 pip install -r requirements.txt
 
+# Run locally
 uvicorn src.main:app --reload
-ruff check . && ruff format .
-pytest --cov=src --cov-fail-under=80  # 80% coverage enforced in CI
+
+# Linting & Formatting
+ruff check .                          # Check for issues
+ruff check --fix .                    # Auto-fix issues
+ruff format .                         # Format code
+pre-commit run --all-files            # Pre-commit hooks (Ruff only, no pytest)
+
+# Testing
+pytest                                # All tests with coverage
+pytest -m unit                        # Unit tests only
+pytest -m integration                 # Integration tests only
+pytest tests/integration/test_messages.py           # Single file
+pytest tests/integration/test_messages.py -k create # Single test by keyword
+pytest --cov=src --cov-fail-under=80  # With CI coverage gate (80%)
+
+# Database migrations
+alembic revision --autogenerate -m "Description"
+alembic upgrade head
+alembic downgrade -1
+
+# Outbox worker (standalone process, publishes events to RabbitMQ)
+python -m src.workers.outbox_worker
 ```
 
 ### Web Core (TypeScript/Next.js)
@@ -202,6 +223,11 @@ Copy `.env.example` to `.env` in each service.
 - `COGNITO_CLIENT_IDS` - Comma-separated; first is the backend client (has secret)
 - `COGNITO_CLIENT_SECRET` - Backend app client secret
 
+**Messaging API:**
+- `DATABASE_URL` - PostgreSQL connection string
+- `MONGODB_URL`, `MONGODB_DB_NAME` - MongoDB connection
+- `RABBITMQ_URL` - RabbitMQ connection string (for outbox event infrastructure)
+
 **Gateway:**
 - `ACCOUNT_API_IMAGE`, `MESSAGING_API_IMAGE` - Docker images
 - `APP_PORT` (8080), `ACCOUNT_API_PORT` (5002), `MESSAGING_API_PORT` (5001)
@@ -210,10 +236,13 @@ Copy `.env.example` to `.env` in each service.
 
 **Python (Both APIs):**
 - Ruff for linting/formatting (config: `ruff.toml`, line length: 100)
-- `ARG001` is ignored in router files — FastAPI path params are injected by the framework and appear unused
+- Account API ignores `ARG001` in routers (FastAPI path params appear unused); Messaging API ignores `ARG002` in tests (pytest fixture injection)
+- Both ignore `B008` (FastAPI `Depends()` in argument defaults)
 - Account API: pre-commit runs Ruff + pytest (50% coverage); Messaging API: pre-commit runs Ruff only (80% coverage is CI-only)
 - Test markers: `unit`, `integration`, `slow`, `auth`
 - `asyncio_mode = auto` in pytest config — required for FastAPI async test support
+- **Conventional Commits** required: `feat(scope):`, `fix:`, `refactor:`, etc. Subject line under 72 chars, imperative mood, lowercase
+- **Branch prefixes**: `feat/`, `fix/`, `refactor/`, `docs/`, `test/`, `chore/`, `ci/`
 
 **TypeScript (Web Core):**
 - ESLint + Prettier
@@ -240,4 +269,17 @@ GitHub Actions workflows per service:
 - `contacts` - Contact management with flexible metadata
 - `persons` - Person records
 
-**Messaging API** — Skeleton only. Base model classes exist (`PostgresBaseModel`, `MongoDBBaseModel`) but no domain models are implemented yet. Planned entities: channels, messages, templates, group_messages, scheduled_messages, outbox_events (see `docs/TURUMBA_MESSAGING.md` and `docs/TURUMBA_DELIVERY_CHANNELS.md` for full data models).
+**Messaging API** — PostgreSQL models in `src/models/postgres/`:
+- `channels` - Delivery channel configuration (SMS, SMPP, Telegram, WhatsApp, etc.)
+- `messages` - Individual messages with status tracking
+- `templates` - Reusable message templates
+- `group_messages` - Bulk messaging to groups
+- `scheduled_messages` - Time-delayed message dispatch
+- `outbox_events` - Transactional outbox for reliable event publishing to RabbitMQ
+
+### Key Model Conventions
+
+- **Metadata column**: Models use `metadata_` (avoids Python keyword conflict), schemas use `metadata` with `validation_alias="metadata_"`
+- **PostgreSQL models** must be re-exported in `src/models/postgres/__init__.py` for Alembic autogenerate to detect them
+- **Service layer pattern**: Three classes per entity — `CreationService`, `RetrievalService`, `UpdateService`. Use `asyncio.to_thread()` for sync SQLAlchemy ops in async context
+- Architecture changes require updating the service-level `ARCHITECTURE.md` alongside the code

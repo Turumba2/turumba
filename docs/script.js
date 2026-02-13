@@ -9,6 +9,8 @@ document.addEventListener('DOMContentLoaded', function () {
   // Section titles for breadcrumb
   const sectionTitles = {
     home: 'Overview',
+    'project-status': 'Project Status',
+    issues: 'GitHub Issues',
     architecture: 'Architecture',
     messaging: 'Messaging System',
     channels: 'Delivery Channels',
