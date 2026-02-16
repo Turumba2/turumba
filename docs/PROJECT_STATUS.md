@@ -1,6 +1,6 @@
 # Turumba 2.0 — Project Status
 
-> Last updated: 2026-02-13
+> Last updated: 2026-02-16
 
 Quick navigation:
 - [Implementation Status by Service](#implementation-status-by-service)
@@ -17,7 +17,7 @@ Related documents:
 
 ## Implementation Status by Service
 
-### turumba_account_api — COMPLETE
+### turumba_account_api — COMPLETE (Active Development)
 
 All core entities are fully implemented end-to-end (model → schema → service → controller → router → tests).
 
@@ -37,6 +37,12 @@ All core entities are fully implemented end-to-end (model → schema → service
 **Database:** 1 Alembic migration (init_db — all tables)
 
 **Coverage:** 50% minimum enforced (pre-commit + CI)
+
+**Recent changes (since 2026-02-13):**
+- **PR #60 merged:** Custom filter resolvers for cross-table filtering and sorting (e.g., filter users by account name)
+- **PR #59 merged:** Cursor plan formatting fixes
+- **WIP on main (uncommitted):** AccountUser entity rework — new controllers (`account_user`, `account_user_by_account`), schemas, services, routers, and tests for managing users within accounts from both the account and user perspectives. 10 new files + 5 modified files.
+- **New bugs:** #62 Unauthorized Access to Organization (2026-02-15), #63 Creating new org returns 500 (2026-02-15)
 
 ---
 
@@ -66,7 +72,7 @@ All five domain entities have full CRUD implemented. Event infrastructure is bui
 
 ---
 
-### turumba_gateway — FULLY CONFIGURED
+### turumba_gateway — FULLY CONFIGURED (PR #14 Pending Merge)
 
 | Component | Status | Details |
 |-----------|--------|---------|
@@ -80,6 +86,10 @@ All five domain entities have full CRUD implemented. Event infrastructure is bui
 **Total: 51 gateway endpoints configured**
 
 **Plugin patterns:** 10 wildcard patterns covering all entity routes for context enrichment
+
+**Note:** The repo is currently checked out on `feature/add-messaging-api-endpoints` branch. PR #14 adds messaging API endpoint routes with rate limiting, circuit breakers, and `role_ids` mapping — aligned with the accounts.json pattern. This PR has been reviewed but **not yet merged to main**.
+
+**New issue:** #16 — Add query parameter validation plugin for list endpoints
 
 ---
 
@@ -98,10 +108,19 @@ All five domain entities have full CRUD implemented. Event infrastructure is bui
 | Dashboard | turumba | skeleton | Protected route, placeholder content |
 | Shared UI Library | @repo/ui | done | 24 Radix-based components, Field system |
 | Generic Table Builder | @repo/ui | done | Pagination + API integration |
+| Organization Management | turumba | done | Org page, empty state, inactive org handling |
+| User Management | turumba | done | User management feature |
+| Contacts (initial) | turumba | partial | Empty state + filters, page header |
 | Advanced Table Filter | turumba | in progress | Issue #5 open |
 | negarit app | negarit | skeleton | Boilerplate only |
 | web app | web | skeleton | Boilerplate only |
 | docs app | docs | skeleton | Boilerplate only |
+
+**New bugs (2026-02-16):**
+- [web#21](https://github.com/Turumba2/turumba_web_core/issues/21) — Inactive User Redirection
+- [web#22](https://github.com/Turumba2/turumba_web_core/issues/22) — Switching between organization issue
+
+**Note:** Issue #1 (Core Auth Pages) is still open despite implementation being complete — may need to be closed or has remaining sub-tasks.
 
 ---
 
@@ -154,6 +173,18 @@ All five domain entities have full CRUD implemented. Event infrastructure is bui
 
 ## What's Next
 
+### Urgent bugs
+
+1. **Account API #63** — Creating a new organization returns 500 Internal Server Error (2026-02-15)
+2. **Account API #62** — Unauthorized Access to Organization (2026-02-15)
+3. **Web Core #22** — Switching between organization issue (2026-02-16)
+4. **Web Core #21** — Inactive User Redirection (2026-02-16)
+
+### Pending merges
+
+1. **Gateway PR #14** — Merge messaging API endpoint routes to main (reviewed, ready)
+2. **Account API** — Commit and PR the AccountUser entity rework (currently uncommitted on main)
+
 ### Immediate priorities (blocking frontend work)
 
 1. **BE-006 completion** — Wire EventBus into GroupMessage and ScheduledMessage service layers so domain events flow through the outbox to RabbitMQ. [messaging#13](https://github.com/Turumba2/turumba_messaging_api/issues/13)
@@ -169,14 +200,22 @@ Recommended build order following dependency chain:
 4. FE-007 → FE-008 (Group messages table → Create group message) — Needs templates + channels
 5. FE-009 → FE-010 (Scheduled messages table → Create/Edit scheduled) — Needs all above
 
-### Account API backlog (31 open issues)
+### Account API backlog (30 open issues)
 
 The account_api repo has a large backlog of high-level epic/feature issues. Many overlap with messaging task specs or represent future phases. See [GITHUB_ISSUES.md](./GITHUB_ISSUES.md#turumba_account_api) for the full list.
 
 ### Cross-cutting
 
-- Doppler integration across all services (3 issues created today)
+- Doppler integration across all services (3 issues open: account#61, messaging#26, web#20)
 - Dashboard analytics (account#43, account#42)
 - Real-time messaging via WebSocket (account#41)
 - RabbitMQ event-driven architecture (account#40)
 - WhatsApp API integration (account#38)
+
+### Repository hygiene
+
+- **Account API:** ~10 stale local branches from merged PRs can be cleaned up
+- **Messaging API:** ~6 stale local branches from merged features
+- **Gateway:** ~3 stale branches from merged PRs
+- **Web Core:** Remote `feat/auth` branch can be deleted (all auth PRs merged)
+- **Account API issues:** #18, #19, #21 are test/duplicate entries that should be closed

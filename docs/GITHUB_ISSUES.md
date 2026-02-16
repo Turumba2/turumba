@@ -1,13 +1,13 @@
 # GitHub Issues Reference
 
-> Last updated: 2026-02-13
+> Last updated: 2026-02-16
 > Organization: [Turumba2](https://github.com/Turumba2)
 
 Quick navigation:
 - [turumba_messaging_api](#turumba_messaging_api) (2 open / 10 closed)
-- [turumba_web_core](#turumba_web_core) (13 open / 3 closed)
-- [turumba_account_api](#turumba_account_api) (31 open / 2 closed)
-- [turumba_gateway](#turumba_gateway) (1 open / 1 closed)
+- [turumba_web_core](#turumba_web_core) (16 open / 3 closed)
+- [turumba_account_api](#turumba_account_api) (30 open / 2 closed)
+- [turumba_gateway](#turumba_gateway) (2 open / 1 closed)
 - [Summary](#summary)
 
 Related: [Project Status](./PROJECT_STATUS.md) | [Task Specs](./tasks/)
@@ -47,11 +47,23 @@ Related: [Project Status](./PROJECT_STATUS.md) | [Task Specs](./tasks/)
 **Repo:** [Turumba2/turumba_web_core](https://github.com/Turumba2/turumba_web_core)
 **Team:** bengeos (lead), nahomfix (developer)
 
-### Open Issues
+### Open Issues — Bugs
+
+| # | Title | Assignee | Created | Task Spec |
+|---|-------|----------|---------|-----------|
+| [22](https://github.com/Turumba2/turumba_web_core/issues/22) | Switching between organization issue | — | 2026-02-16 | — |
+| [21](https://github.com/Turumba2/turumba_web_core/issues/21) | Inactive User Redirection | — | 2026-02-16 | — |
+
+### Open Issues — Infrastructure
 
 | # | Title | Assignee | Created | Task Spec |
 |---|-------|----------|---------|-----------|
 | [20](https://github.com/Turumba2/turumba_web_core/issues/20) | Integrate Doppler for environment variable management | bengeos | 2026-02-13 | — |
+
+### Open Issues — Feature Pages
+
+| # | Title | Assignee | Created | Task Spec |
+|---|-------|----------|---------|-----------|
 | [16](https://github.com/Turumba2/turumba_web_core/issues/16) | FE-010: Create / Edit Scheduled Message Page | nahomfix | 2026-02-08 | [FE-010](./tasks/messaging/FE-010-create-edit-scheduled-message.md) |
 | [15](https://github.com/Turumba2/turumba_web_core/issues/15) | FE-009: Scheduled Messages Table View | nahomfix | 2026-02-08 | [FE-009](./tasks/messaging/FE-009-scheduled-messages-table.md) |
 | [14](https://github.com/Turumba2/turumba_web_core/issues/14) | FE-008: Create Group Message Page | nahomfix | 2026-02-08 | [FE-008](./tasks/messaging/FE-008-create-group-message.md) |
@@ -64,6 +76,7 @@ Related: [Project Status](./PROJECT_STATUS.md) | [Task Specs](./tasks/)
 | [7](https://github.com/Turumba2/turumba_web_core/issues/7) | Create New Message Compose UI (Page/Popup) | nahomfix | 2026-02-08 | [FE-001](./tasks/messaging/FE-001-create-new-message.md) |
 | [6](https://github.com/Turumba2/turumba_web_core/issues/6) | Build Messages Page with multi-channel messaging, filters, and paginated table | nahomfix | 2026-02-08 | — |
 | [5](https://github.com/Turumba2/turumba_web_core/issues/5) | Build Advanced Table Filter component with configurable column types and operations | nahomfix | 2026-02-08 | — |
+| [1](https://github.com/Turumba2/turumba_web_core/issues/1) | Implement Core Authentication Pages (Sign Up, Sign In, Email Verify) | nahomfix | 2026-01-29 | — |
 
 ### Closed Issues
 
@@ -80,6 +93,15 @@ Related: [Project Status](./PROJECT_STATUS.md) | [Task Specs](./tasks/)
 **Repo:** [Turumba2/turumba_account_api](https://github.com/Turumba2/turumba_account_api)
 **Team:** bengeos (lead), nahomfix (developer), NardosKb (developer)
 
+### Open Issues — Bugs
+
+| # | Title | Assignee | Created |
+|---|-------|----------|---------|
+| [63](https://github.com/Turumba2/turumba_account_api/issues/63) | Creating a new organization returns a 500 Internal Server Error | — | 2026-02-15 |
+| [62](https://github.com/Turumba2/turumba_account_api/issues/62) | Unauthorized Access to Organization | — | 2026-02-15 |
+| [57](https://github.com/Turumba2/turumba_account_api/issues/57) | Switching between organization issue | nahomfix | 2026-02-06 |
+| [56](https://github.com/Turumba2/turumba_account_api/issues/56) | Inactive User Redirection | nahomfix | 2026-02-06 |
+
 ### Open Issues — Infrastructure & DevOps
 
 | # | Title | Assignee | Created |
@@ -94,7 +116,6 @@ Related: [Project Status](./PROJECT_STATUS.md) | [Task Specs](./tasks/)
 
 | # | Title | Assignee | Created |
 |---|-------|----------|---------|
-| [56](https://github.com/Turumba2/turumba_account_api/issues/56) | Inactive User Redirection | nahomfix | 2026-02-06 |
 | [53](https://github.com/Turumba2/turumba_account_api/issues/53) | Multi-Org Switcher & Dashboard Access [FE] | bengeos | 2026-02-03 |
 | [29](https://github.com/Turumba2/turumba_account_api/issues/29) | [BE] User Management & Invitation Service (RBAC) | bengeos | 2026-01-29 |
 | [28](https://github.com/Turumba2/turumba_account_api/issues/28) | User Management & Invitations | bengeos | 2026-01-29 |
@@ -110,12 +131,11 @@ Related: [Project Status](./PROJECT_STATUS.md) | [Task Specs](./tasks/)
 | [31](https://github.com/Turumba2/turumba_account_api/issues/31) | Contact CRUD / Import & Export [FE] | bengeos | 2026-01-29 |
 | [30](https://github.com/Turumba2/turumba_account_api/issues/30) | Contact CRUD & Grouping [BE] | bengeos | 2026-01-29 |
 
-### Open Issues — Messaging & Channels
+### Open Issues — Enhancements & Messaging
 
 | # | Title | Assignee | Created |
 |---|-------|----------|---------|
 | [58](https://github.com/Turumba2/turumba_account_api/issues/58) | Implement Sorting and Filtering mechanisms across all data tables | nahomfix | 2026-02-06 |
-| [57](https://github.com/Turumba2/turumba_account_api/issues/57) | Switching between organization issue | nahomfix | 2026-02-06 |
 | [55](https://github.com/Turumba2/turumba_account_api/issues/55) | [FE] Message Automation & Scheduling Tools | — | 2026-02-03 |
 | [54](https://github.com/Turumba2/turumba_account_api/issues/54) | [BE] Scheduling & Bulk Messaging Engine | bengeos | 2026-02-03 |
 | [36](https://github.com/Turumba2/turumba_account_api/issues/36) | [BE] Messaging Service & Multi-Platform Normalization | bengeos | 2026-01-30 |
@@ -154,10 +174,18 @@ Related: [Project Status](./PROJECT_STATUS.md) | [Task Specs](./tasks/)
 **Repo:** [Turumba2/turumba_gateway](https://github.com/Turumba2/turumba_gateway)
 **Team:** bengeos (lead)
 
-| # | Title | State | Assignee | Created | Closed |
-|---|-------|-------|----------|---------|--------|
-| [6](https://github.com/Turumba2/turumba_gateway/issues/6) | CORS preflight requests failing on deployed instance | CLOSED | bengeos | 2026-01-30 | 2026-01-30 |
-| [5](https://github.com/Turumba2/turumba_gateway/issues/5) | Test task 0111 | OPEN | — | 2026-01-29 | — |
+### Open Issues
+
+| # | Title | Assignee | Created |
+|---|-------|----------|---------|
+| [16](https://github.com/Turumba2/turumba_gateway/issues/16) | Add query parameter validation plugin for list endpoints | — | 2026-02-13 |
+| [5](https://github.com/Turumba2/turumba_gateway/issues/5) | Test task 0111 | — | 2026-01-29 |
+
+### Closed Issues
+
+| # | Title | Assignee | Closed |
+|---|-------|----------|--------|
+| [6](https://github.com/Turumba2/turumba_gateway/issues/6) | CORS preflight requests failing on deployed instance | bengeos | 2026-01-30 |
 
 ---
 
@@ -166,13 +194,21 @@ Related: [Project Status](./PROJECT_STATUS.md) | [Task Specs](./tasks/)
 | Repository | Open | Closed | Total |
 |------------|:----:|:------:|:-----:|
 | turumba_messaging_api | 2 | 10 | 12 |
-| turumba_web_core | 13 | 3 | 16 |
-| turumba_account_api | 31 | 2 | 33 |
-| turumba_gateway | 1 | 1 | 2 |
-| **Total** | **47** | **16** | **63** |
+| turumba_web_core | 16 | 3 | 19 |
+| turumba_account_api | 30 | 2 | 32 |
+| turumba_gateway | 2 | 1 | 3 |
+| **Total** | **50** | **16** | **66** |
+
+### Changes since 2026-02-13
+
+- **+3 web_core issues:** #21 (Inactive User Redirection bug), #22 (Org switching bug), #1 (still open — auth pages implemented but issue not closed)
+- **+2 account_api issues:** #62 (Unauthorized Access to Organization), #63 (Creating org returns 500 error)
+- **-1 account_api:** Issue count dropped from 31 to 30 (one issue may have been closed or reassigned)
+- **+1 gateway issue:** #16 (Query parameter validation plugin)
 
 ### Notes
 
 - The **account_api** repo has many high-level epic/feature issues (e.g., #36, #37, #54, #55) that overlap with the detailed task specs in `docs/tasks/`. These were created as early planning issues before the detailed specs were written. Consider closing or linking them to the specific task specs.
-- Issues #18, #19, #20, #21 in account_api appear to be test/duplicate entries that could be cleaned up.
-- Three Doppler integration issues (#61, #26, #20) were created today across account_api, messaging_api, and web_core.
+- Issues #18, #19, #21 in account_api appear to be test/duplicate entries that could be cleaned up.
+- Three Doppler integration issues (#61, #26, #20) were created on 2026-02-13 across account_api, messaging_api, and web_core.
+- **New urgent bugs:** Account API #62 and #63 (org access/creation), Web Core #21 and #22 (org switching/inactive user) — all filed 2026-02-15/16.
