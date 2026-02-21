@@ -1,4 +1,5 @@
 .DS_Store
+.vscode/
 turumba_account_api/
 turumba_gateway/
 turumba_messaging_api/
