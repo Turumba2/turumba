@@ -213,13 +213,16 @@ Messaging API (FastAPI)
 │   ├── ChannelController       # Delivery channel CRUD
 │   ├── MessageController       # Message CRUD and status tracking
 │   ├── TemplateController      # Template message CRUD
-│   ├── GroupMessageController  # Group message CRUD with event emission
-│   └── ScheduledMessageController # Scheduled message CRUD with event emission
+│   ├── GroupMessageController  # Group message CRUD
+│   └── ScheduledMessageController # Scheduled message CRUD
 │
 ├── Services
 │   ├── ChannelService          # Channel verification, credential masking
 │   ├── TemplateService         # Variable extraction, rendering
-│   └── AutoTemplateService     # Auto-create template from message_body
+│   ├── AutoTemplateService     # Auto-create template from message_body
+│   ├── MessageCreationService  # Message creation with event emission
+│   ├── GroupMessageCreationService  # Group message creation with event emission
+│   └── ScheduledMessageCreationService  # Scheduled message creation with event emission
 │
 ├── Event Infrastructure
 │   ├── DomainEvent             # Event dataclass (type, aggregate, payload)
@@ -830,7 +833,7 @@ Group messaging and scheduled message delivery are powered by an event-driven ar
 
 ```
 Layer 1: EventBus (in-memory, request-scoped)
-    Controllers emit domain events during business logic.
+    Creation services emit domain events during business logic.
     Events are collected in memory — nothing is persisted yet.
          │
          ▼
@@ -857,24 +860,29 @@ The **dual-write problem** occurs when an application writes to a database AND p
 |---------|-----------------|
 | **Atomicity** | Entity + outbox event in one DB transaction |
 | **No event loss** | Events persist in outbox even if RabbitMQ is down |
-| **Separation of concerns** | Controllers emit events without knowing about outbox or RabbitMQ |
+| **Separation of concerns** | Services emit events without knowing about outbox or RabbitMQ |
 | **Idempotency** | Events carry unique IDs — consumers handle at-least-once delivery |
 | **Scalability** | Multiple outbox workers with `FOR UPDATE SKIP LOCKED` |
 
-### 8.3 Router Pattern
+### 8.3 Service-Level Event Emission
+
+Events are emitted in the **service layer** (CreationService classes). The EventBus is injected at the router and threaded through controller → service.
 
 ```python
-# Controller → Flush → Commit → Notify
-result = await controller.create(data, db, event_bus=event_bus)
-await outbox.flush(db, event_bus, user_id=current_user_id)
-await db.commit()                          # atomic: entity + outbox events
-await pg_notify('outbox_channel')          # wake up worker (fire-and-forget)
+# In CreationService._create():
+self.db.flush()                            # get entity ID
+self.event_bus.emit(DomainEvent(...))      # emit event
+OutboxMiddleware.flush(self.db, self.event_bus)  # write outbox rows
+self.db.commit()                           # atomic: entity + outbox events
+send_pg_notify(self.db)                    # wake up worker (fire-and-forget)
+self.db.refresh(db_obj)                    # reload after pg_notify's internal commit
 ```
 
 ### 8.4 Event Types
 
 | Event Type | Trigger |
 |------------|---------|
+| `message.created` | Message created |
 | `group_message.created` | GroupMessage created |
 | `group_message.queued` | Status → queued |
 | `group_message.cancelled` | Status → cancelled |

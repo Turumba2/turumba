@@ -626,7 +626,7 @@ The event pipeline consists of three layers:
 
 ```
 Layer 1: EventBus (in-memory, request-scoped)
-    Controllers emit domain events during business logic.
+    Creation services emit domain events during business logic.
     Events are collected in memory — nothing is persisted yet.
          │
          ▼
@@ -653,7 +653,7 @@ The **dual-write problem** occurs when an application needs to write to a databa
 |---------|-----------------|
 | **Atomicity** | Entity + outbox event written in one DB transaction — both succeed or both fail |
 | **No event loss** | Events persist in the outbox even if RabbitMQ is down — published when broker recovers |
-| **Separation of concerns** | Controllers emit events without knowing about the outbox or RabbitMQ |
+| **Separation of concerns** | Services emit events without knowing about the outbox or RabbitMQ |
 | **Testability** | Mock the EventBus to assert events emitted without needing a real DB or broker |
 | **Idempotency** | Events carry a unique `id` — consumers handle at-least-once delivery |
 | **Scalability** | Multiple outbox workers can run concurrently with `FOR UPDATE SKIP LOCKED` |
@@ -661,36 +661,37 @@ The **dual-write problem** occurs when an application needs to write to a databa
 
 ### EventBus
 
-The EventBus is a **request-scoped, in-memory** event collector. Each HTTP request gets its own EventBus instance. Controllers call `event_bus.emit()` to record that something happened — the events are collected in a Python list but **not yet persisted**.
+The EventBus is a **request-scoped, in-memory** event collector. Each HTTP request gets its own EventBus instance, injected at the router level and threaded through controller → service. Creation services call `event_bus.emit()` to record that something happened — the events are collected in a Python list but **not yet persisted**.
 
-This keeps controllers clean — they express domain intent ("a group message was queued") without knowing how events are stored or delivered.
+This keeps services clean — they express domain intent ("a group message was created") without knowing how events are stored or delivered.
 
 ```python
-# Controller emits an event — no persistence, no side effects
-event_bus.emit(DomainEvent(
-    event_type="group_message.queued",
+# Service emits an event — no persistence, no side effects
+self.event_bus.emit(DomainEvent(
+    event_type=EventType.GROUP_MESSAGE_CREATED,
     aggregate_type="group_message",
-    aggregate_id=group_message.id,
-    payload={ "id": "...", "status": "queued", "previous_status": "draft" },
+    aggregate_id=db_obj.id,
+    payload={ "account_id": str(account_id), "status": db_obj.status, ... },
 ))
 ```
 
 ### OutboxMiddleware
 
-After the controller finishes, the router calls `OutboxMiddleware.flush()` which:
+After the service emits events, it calls `OutboxMiddleware.flush()` which:
 
 1. Reads all collected events from the EventBus via `collect()`
 2. Creates `OutboxEvent` records in the DB session (not committed yet)
 3. Enriches each event payload with standard metadata (timestamp, user_id, request_id)
 
-The router then calls `db.commit()` — this single commit atomically persists both the entity changes AND the outbox events. If the commit fails, both are rolled back.
+The service then calls `db.commit()` — this single commit atomically persists both the entity changes AND the outbox events. If the commit fails, both are rolled back.
 
 ```python
-# Router pattern: controller → flush → commit → notify
-result = await controller.create(data, db, event_bus=event_bus)
-await outbox.flush(db, event_bus, user_id=current_user_id)
-await db.commit()                          # atomic: entity + outbox events
-await pg_notify('outbox_channel')          # wake up worker (fire-and-forget)
+# Service pattern: emit → flush → commit → notify → refresh
+self.event_bus.emit(DomainEvent(...))
+OutboxMiddleware.flush(self.db, self.event_bus)
+self.db.commit()                           # atomic: entity + outbox events
+send_pg_notify(self.db)                    # wake up worker (fire-and-forget)
+self.db.refresh(db_obj)                    # reload after pg_notify's internal commit
 ```
 
 ### Outbox Events Data Model
@@ -712,6 +713,12 @@ outbox_events (PostgreSQL)
 ```
 
 ### Event Types
+
+#### Message Events
+
+| Event Type | Trigger | Key Payload Fields |
+|------------|---------|-------------------|
+| `message.created` | Message created | id, account_id, channel_id, direction, status, delivery_address, group_message_id, scheduled_message_id, template_id |
 
 #### Group Message Events
 
@@ -785,30 +792,36 @@ New consumers can bind to the `messaging` exchange at any time without changing 
 
 ### Full Event Lifecycle Example
 
-A user creates a group message with status `queued`:
+A user creates a group message with `message_body`:
 
 ```
-1. POST /v1/group-messages/  { status: "queued", ... }
+1. POST /v1/group-messages/  { message_body: "Hello {NAME}", ... }
 
-2. Controller:
-   ├── Creates GroupMessage entity in DB session
-   ├── Auto-creates template if message_body provided
-   └── event_bus.emit(DomainEvent("group_message.created", ...))
+2. Router:
+   └── Injects EventBus, passes to GroupMessageController
 
-3. Router:
-   ├── outbox.flush(db, event_bus) → writes OutboxEvent to DB session
-   ├── db.commit() → ATOMIC: GroupMessage + OutboxEvent
-   └── pg_notify('outbox_channel')
+3. Controller:
+   └── Calls GroupMessageCreationService._create()
 
-4. Outbox Worker:
+4. CreationService:
+   ├── Auto-creates Template from message_body
+   ├── Creates GroupMessage entity → db.flush() to get ID
+   ├── Creates linked Message record → db.flush()
+   ├── event_bus.emit(DomainEvent("group_message.created", ...))
+   ├── OutboxMiddleware.flush(db, event_bus) → writes OutboxEvent to DB session
+   ├── db.commit() → ATOMIC: GroupMessage + Template + Message + OutboxEvent
+   ├── send_pg_notify(db) → wakes outbox worker
+   └── db.refresh(db_obj) → reload after pg_notify's internal commit
+
+5. Outbox Worker:
    ├── Wakes up via pg_notify
    ├── SELECT outbox_events WHERE status = 'pending'
    ├── Publish to RabbitMQ: routing_key = "group_message.created"
    └── UPDATE status = 'published'
 
-5. RabbitMQ routes to "group_message_processing" queue
+6. RabbitMQ routes to "group_message_processing" queue
 
-6. Group Message Processor (future consumer):
+7. Group Message Processor (future consumer):
    ├── Fetches GroupMessage, Template, Contacts
    ├── Iterates contacts, renders templates, creates Messages
    ├── Updates progress counters
@@ -837,10 +850,10 @@ All messaging features are built on the same foundation:
             │              │              │
             ▼              ▼              ▼
       Single Message  Group Message  Scheduled Message
-                           │              │
-                           └──────┬───────┘
-                                  │
-                           EventBus → Outbox
+            │              │              │
+            └──────────────┼──────────────┘
+                           │
+                    EventBus → Outbox
                                   │
                                   ▼
                         RabbitMQ (messaging)
@@ -860,5 +873,5 @@ All messaging features are built on the same foundation:
 - **Delivery Channels** are required — you need at least one before you can send anything
 - **Template Messages** are optional for single messages but required for group messaging (each contact gets a personalized version)
 - **Group Messaging** and **Scheduled Messages** are different ways to trigger the same underlying message send
-- **Event Infrastructure** connects Group Messages and Scheduled Messages to background processors via EventBus → Transactional Outbox → RabbitMQ
+- **Event Infrastructure** connects Messages, Group Messages, and Scheduled Messages to background processors via EventBus → Transactional Outbox → RabbitMQ
 - Every message — regardless of how it was triggered — results in a **Message Record** with full status tracking
