@@ -1,6 +1,6 @@
 # Turumba 2.0 — Project Status
 
-> Last updated: 2026-02-16
+> Last updated: 2026-02-22
 
 Quick navigation:
 - [Implementation Status by Service](#implementation-status-by-service)
@@ -27,28 +27,31 @@ All core entities are fully implemented end-to-end (model → schema → service
 | Account | done | done | done | done (3) | done | done |
 | Role | done | done | done | done (3) | done | done |
 | AccountUser | done | done | done | done (5) | done | done |
+| Group | done | done | done | done (3) | done | done |
 | Contact (MongoDB) | done | done | done | done (3) | done | done |
 | Person (MongoDB) | done | done | done | done (3) | done | done |
 | Auth (Cognito) | — | done | done | done | done | done |
 | Context | — | — | done | — | done | — |
 
-**Endpoints registered:** `/v1/auth`, `/v1/users`, `/v1/accounts`, `/v1/roles`, `/v1/contacts`, `/v1/persons`, `/v1/context`
+**Endpoints registered:** `/v1/auth`, `/v1/users`, `/v1/accounts`, `/v1/roles`, `/v1/contacts`, `/v1/persons`, `/v1/groups`, `/v1/context`
 
 **Database:** 1 Alembic migration (init_db — all tables)
 
 **Coverage:** 50% minimum enforced (pre-commit + CI)
 
-**Recent changes (since 2026-02-13):**
-- **PR #60 merged:** Custom filter resolvers for cross-table filtering and sorting (e.g., filter users by account name)
-- **PR #59 merged:** Cursor plan formatting fixes
-- **WIP on main (uncommitted):** AccountUser entity rework — new controllers (`account_user`, `account_user_by_account`), schemas, services, routers, and tests for managing users within accounts from both the account and user perspectives. 10 new files + 5 modified files.
-- **New bugs:** #62 Unauthorized Access to Organization (2026-02-15), #63 Creating new org returns 500 (2026-02-15)
+**Recent changes (since 2026-02-16):**
+- **PR #70 merged:** Response envelope standardization (`SuccessResponse`/`ListResponse` wrappers)
+- **PR #68 merged:** Account user sub-endpoints for membership management (incl. fix for `InvalidAccountIdError` 403 + count wiring)
+- **PR #71 merged:** MongoDB exception handler improvement (503 instead of 500)
+- **PR #66 merged:** Group CRUD and membership feature
+- **PR #51 merged:** Contact dynamic properties, PersonContact routes wrapped in SuccessResponse/ListResponse, DuplicateKeyError → 409
+- Working tree is **clean** on main
 
 ---
 
-### turumba_messaging_api — CRUD COMPLETE, Events Integration Pending
+### turumba_messaging_api — CRUD COMPLETE, Events Wiring & Dispatch In Progress
 
-All five domain entities have full CRUD implemented. Event infrastructure is built but **not yet wired into the service layer**.
+All five domain entities have full CRUD implemented. Event infrastructure built. Channel adapter framework implemented (Telegram). HSM dispatch pipeline started. Active feature branch for message enrichment.
 
 | Entity | Model | Schema | Controller | Service | Router | Tests |
 |--------|:-----:|:------:|:----------:|:-------:|:------:|:-----:|
@@ -61,6 +64,7 @@ All five domain entities have full CRUD implemented. Event infrastructure is bui
 | EventBus | — | — | — | done | — | done |
 | OutboxMiddleware | — | — | — | done | — | done |
 | OutboxWorker | — | — | — | done | — | — |
+| ChannelAdapter | — | — | — | done (Telegram) | — | done |
 
 **Endpoints registered:** `/v1/channels`, `/v1/messages`, `/v1/templates`, `/v1/group-messages`, `/v1/scheduled-messages`
 
@@ -68,32 +72,44 @@ All five domain entities have full CRUD implemented. Event infrastructure is bui
 
 **Coverage:** 80% minimum enforced in CI
 
-**Gap:** Event emission is not integrated — services create entities but do not publish domain events to EventBus. The EventBus, OutboxMiddleware, and OutboxWorker are all implemented and tested individually, but the routers/services don't inject or use them yet. This is the remaining work in [BE-006](./tasks/messaging/BE-006-event-outbox-rabbitmq.md).
+**Recent changes (since 2026-02-16):**
+- **PR #36 merged:** Channel adapter framework — abstract `ChannelAdapter` ABC, decorator-based registry, exception hierarchy, `TelegramAdapter` implementation
+- **PR #37 merged:** HSM dispatch pipeline — Telegram API integration
+- **PR #40 merged:** Template create/update workflow fixes — shared `_get_scoped_account_id` helper, variable dedup, body validation
+- **PRs #30, #39 merged:** Response format standardization across all entities
+- **Active branch:** `feat/message-enrichment-and-auto-create` — response enrichment, auto-create on parent creation, `scheduled_message_id` migration, `contact_id` type change (1 unstaged change in message router)
+
+**Gap:** Event emission not yet integrated into create flows — [BE-007](./tasks/messaging/BE-007-wire-create-outbox-events.md) defines the wiring task (flush→commit→notify pattern). The EventBus, OutboxMiddleware, and OutboxWorker are all implemented and tested individually.
 
 ---
 
-### turumba_gateway — FULLY CONFIGURED (PR #14 Pending Merge)
+### turumba_gateway — FULLY CONFIGURED
 
 | Component | Status | Details |
 |-----------|--------|---------|
 | KrakenD config | done | Template-based with file composition |
-| Context-enricher plugin | done | Go plugin with wildcard pattern matching |
-| Account API endpoints | done | auth (4), accounts (5), users (5), persons (5), groups (5), context (1) = **25 endpoints** |
+| Context-enricher plugin | done | Go plugin with wildcard pattern matching + **LRU cache** (PR #18) |
+| Account API endpoints | done | auth (4), accounts (5), users (5), persons (5), groups (5), roles (5), contacts (5), context (1) = **35 endpoints** |
 | Messaging API endpoints | done | channels (5), messages (5), templates (5), group-messages (5), scheduled-messages (5) = **25 endpoints** |
 | Lua scripts | done | request_enricher, error_passthrough, header_modifier, http_client |
 | Docker Compose | done | 3 services (krakend, account_api, messaging_api) on gateway-network |
+| Rate limiting | done | Per-endpoint rate limiting for messaging API routes |
+| Circuit breakers | done | Per-endpoint circuit breakers for messaging API routes |
 
-**Total: 51 gateway endpoints configured**
+**Total: ~60 gateway endpoints configured**
 
 **Plugin patterns:** 10 wildcard patterns covering all entity routes for context enrichment
 
-**Note:** The repo is currently checked out on `feature/add-messaging-api-endpoints` branch. PR #14 adds messaging API endpoint routes with rate limiting, circuit breakers, and `role_ids` mapping — aligned with the accounts.json pattern. This PR has been reviewed but **not yet merged to main**.
-
-**New issue:** #16 — Add query parameter validation plugin for list endpoints
+**Recent changes (since 2026-02-16):**
+- **PR #18 merged:** In-memory LRU cache for context-enricher plugin — reduces calls to Account API
+- **PR #14 merged:** Messaging API endpoint routes with rate limiting, circuit breakers, and `role_ids` mapping
+- **PR #17 merged:** Missing account API endpoints (roles, contacts, group sub-resources)
+- **PR #13 merged:** Roles CRUD endpoints
+- **Active branch:** `fix/messaging-api-trailing-slash` — adds trailing slash to messaging API backend `url_pattern` (not yet merged)
 
 ---
 
-### turumba_web_core — Auth Complete, Feature Pages Pending
+### turumba_web_core — Auth + Contacts + Groups Done, Messaging Feature Pages Pending
 
 | Feature | App | Status | Notes |
 |---------|-----|--------|-------|
@@ -107,20 +123,22 @@ All five domain entities have full CRUD implemented. Event infrastructure is bui
 | Server-side Auth Guard | turumba | done | Middleware redirects unauthenticated users |
 | Dashboard | turumba | skeleton | Protected route, placeholder content |
 | Shared UI Library | @repo/ui | done | 24 Radix-based components, Field system |
-| Generic Table Builder | @repo/ui | done | Pagination + API integration |
+| Generic Table Builder | @repo/ui | done | DataTable + DataTablePagination generics |
 | Organization Management | turumba | done | Org page, empty state, inactive org handling |
 | User Management | turumba | done | User management feature |
-| Contacts (initial) | turumba | partial | Empty state + filters, page header |
+| Contacts Management | turumba | done | Table, CRUD dialogs (create/edit/delete), filters |
+| Groups Management | turumba | done | Group cards, CRUD dialogs, group detail with contacts table |
 | Advanced Table Filter | turumba | in progress | Issue #5 open |
 | negarit app | negarit | skeleton | Boilerplate only |
 | web app | web | skeleton | Boilerplate only |
 | docs app | docs | skeleton | Boilerplate only |
 
-**New bugs (2026-02-16):**
-- [web#21](https://github.com/Turumba2/turumba_web_core/issues/21) — Inactive User Redirection
-- [web#22](https://github.com/Turumba2/turumba_web_core/issues/22) — Switching between organization issue
-
-**Note:** Issue #1 (Core Auth Pages) is still open despite implementation being complete — may need to be closed or has remaining sub-tasks.
+**Recent changes (since 2026-02-16):**
+- Contacts management with CRUD dialogs (create, edit, delete) and filters
+- Groups feature — group cards grid, CRUD dialogs, group detail page with contacts table, breadcrumb navigation
+- Auth redirect fixes and session handling improvements
+- Simplified contact and group dialog handlers for readability
+- Working tree is **clean** on main
 
 ---
 
@@ -135,7 +153,8 @@ All five domain entities have full CRUD implemented. Event infrastructure is bui
 | [BE-003](./tasks/messaging/BE-003-template-messages-crud.md) | Template Messages CRUD API | [messaging#10](https://github.com/Turumba2/turumba_messaging_api/issues/10) | tesfayegirma-116 | Complete | **DONE** — Closed 2026-02-12 |
 | [BE-004](./tasks/messaging/BE-004-group-messages-crud.md) | Group Messages CRUD API | [messaging#11](https://github.com/Turumba2/turumba_messaging_api/issues/11) | tesfayegirma-116 | Complete | **DONE** — Closed 2026-02-12 |
 | [BE-005](./tasks/messaging/BE-005-scheduled-messages-crud.md) | Scheduled Messages CRUD API | [messaging#12](https://github.com/Turumba2/turumba_messaging_api/issues/12) | tesfayegirma-116 | Complete | **DONE** — Closed 2026-02-12 |
-| [BE-006](./tasks/messaging/BE-006-event-outbox-rabbitmq.md) | Event Infrastructure (EventBus + Outbox + RabbitMQ) | [messaging#13](https://github.com/Turumba2/turumba_messaging_api/issues/13) | bengeos, tesfayegirma-116 | Complete | **PARTIAL** — Infrastructure built, not integrated into services |
+| [BE-006](./tasks/messaging/BE-006-event-outbox-rabbitmq.md) | Event Infrastructure (EventBus + Outbox + RabbitMQ) | [messaging#13](https://github.com/Turumba2/turumba_messaging_api/issues/13) | bengeos, tesfayegirma-116 | Complete | **DONE** — Infrastructure fully built and tested |
+| [BE-007](./tasks/messaging/BE-007-wire-create-outbox-events.md) | Wire Create Flows to Outbox Event Pipeline | TBD | tesfayegirma-116 | Complete | **NOT STARTED** — Depends on BE-006 |
 
 ### Frontend Tasks (Web Core)
 
@@ -173,21 +192,14 @@ All five domain entities have full CRUD implemented. Event infrastructure is bui
 
 ## What's Next
 
-### Urgent bugs
-
-1. **Account API #63** — Creating a new organization returns 500 Internal Server Error (2026-02-15)
-2. **Account API #62** — Unauthorized Access to Organization (2026-02-15)
-3. **Web Core #22** — Switching between organization issue (2026-02-16)
-4. **Web Core #21** — Inactive User Redirection (2026-02-16)
-
 ### Pending merges
 
-1. **Gateway PR #14** — Merge messaging API endpoint routes to main (reviewed, ready)
-2. **Account API** — Commit and PR the AccountUser entity rework (currently uncommitted on main)
+1. **Gateway** `fix/messaging-api-trailing-slash` — Trailing slash fix for messaging API backend URL patterns
+2. **Messaging API** `feat/message-enrichment-and-auto-create` — Response enrichment and auto-create on parent creation
 
 ### Immediate priorities (blocking frontend work)
 
-1. **BE-006 completion** — Wire EventBus into GroupMessage and ScheduledMessage service layers so domain events flow through the outbox to RabbitMQ. [messaging#13](https://github.com/Turumba2/turumba_messaging_api/issues/13)
+1. **BE-007** — Wire create flows to outbox event pipeline (flush→commit→notify pattern for group messages and scheduled messages). [Task spec](./tasks/messaging/BE-007-wire-create-outbox-events.md)
 
 2. **Advanced Table Filter component** — Prerequisite for all table view pages (FE-002, FE-004, FE-005, FE-007, FE-009). [web#5](https://github.com/Turumba2/turumba_web_core/issues/5)
 
