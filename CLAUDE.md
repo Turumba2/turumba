@@ -102,6 +102,36 @@ Integration pattern: router injects `EventBus` via `Depends(get_event_bus)` → 
 
 RabbitMQ topology: `messaging` topic exchange → `group_message_processing` and `scheduled_message_processing` queues → `messaging.dlx`/`messaging.dlq` for dead letters.
 
+### Worker Pipeline (Messaging API)
+
+Seven standalone worker processes form the message dispatch pipeline:
+
+```
+POST /group-messages  → outbox_worker → group_message_processor → dispatch_worker → status_update_worker
+POST /scheduled-messages → schedule_trigger (polls DB) → [same dispatch pipeline]
+Inbound webhook → webhook router → inbound_message_worker
+```
+
+- **outbox_worker** — Publishes outbox events to RabbitMQ
+- **group_message_processor** — Fans out GroupMessage → individual Messages
+- **dispatch_worker** — Sends messages via channel adapters (one per channel type)
+- **schedule_trigger** — Triggers scheduled messages at `scheduled_at` time
+- **status_update_worker** — Updates message delivery status from provider callbacks
+- **inbound_message_worker** — Creates Message records from inbound webhooks
+- **smoke_test** — E2E test for channel adapters
+
+All workers use dual-trigger: polling interval + pg_notify for immediate wake-up.
+
+### Cross-Service Enrichment (Messaging API)
+
+Message API responses embed related objects from the Account API instead of raw UUIDs. `AccountApiClient` (`src/clients/account_api.py`) fetches account, contact, and user data via HTTP, forwarding the auth header. List endpoints batch-fetch unique IDs to avoid N+1 HTTP calls. Failures are silent (fields default to `null`).
+
+Same-DB relationships (channel, group_message, scheduled_message) use SQLAlchemy `joinedload` with `lazy="raise"` on relationship definitions to prevent accidental N+1 queries.
+
+### Webhook Infrastructure (Messaging API)
+
+Webhook handlers in `src/routers/webhooks/` receive inbound events from SMS, Telegram, WhatsApp, Messenger, and Email providers. Events are published to RabbitMQ queues for async processing by the `inbound_message_worker` and `status_update_worker`.
+
 ### Adding a New Domain Entity (Backend)
 
 Follow the eight-step process defined in `ARCHITECTURE.md`:
@@ -224,8 +254,13 @@ alembic revision --autogenerate -m "Description"
 alembic upgrade head
 alembic downgrade -1
 
-# Outbox worker (standalone process, publishes events to RabbitMQ)
-python -m src.workers.outbox_worker
+# Workers (standalone processes)
+python -m src.workers.outbox_worker                                # Publish outbox events to RabbitMQ
+python -m src.workers.dispatch_worker --channel-type telegram      # Send messages via channel adapters
+python -m src.workers.group_message_processor                      # Fan out GroupMessage → individual Messages
+python -m src.workers.schedule_trigger                             # Trigger scheduled messages at scheduled_at
+python -m src.workers.inbound_message_worker                       # Create Message records from inbound webhooks
+python -m src.workers.status_update_worker                         # Update message delivery status
 ```
 
 ### Web Core (TypeScript/Next.js)

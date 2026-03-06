@@ -1,42 +1,121 @@
-# Customer Support — Omnichannel Conversation Architecture
+# Omnichannel Conversations — Architecture
 
-> Refined architecture plan for enabling customer support in Turumba 2.0, where agents converse with customers across Telegram, WhatsApp, Messenger, SMS, Email — with bot-first routing and intelligent agent assignment.
-
-## Service Ownership
-
-| Domain | Service | Rationale |
-|---|---|---|
-| **Conversation, ConversationMessage, CannedResponse, BotRule, ContactIdentifier** | Messaging API | Conversations are messaging domain — same DB as channels, messages, templates |
-| **AgentPreference** | Account API | Agent preferences are user profile data — sits alongside users, roles, account_users |
-| **Real-Time Push** | turumba_realtime (NEW) | Separate lightweight Node.js/Socket.IO service, subscribes to RabbitMQ, pushes to connected clients |
+> Complete architecture for real-time customer support conversations in Turumba 2.0. Agents converse with customers across WhatsApp, Telegram, Messenger, SMS, and Email — with bot-first routing, intelligent agent assignment, and real-time push via AWS API Gateway WebSocket.
 
 ---
 
-## 1. Messaging API — New Models
+## 1. Overview
 
-### 1.1 `Conversation`
+### What This System Does
+
+1. **Inbound**: Customer sends a message on any channel → webhook → create/resume a Conversation thread → bot evaluates rules → assign to agent → push to agent's browser in real time
+2. **Outbound**: Agent replies in the inbox → create Message → dispatch via channel adapter → customer receives reply on their platform → push update to all viewing agents
+3. **Automation**: Bot rules auto-reply, auto-label, auto-assign based on keywords, time-of-day, channel, and (future) AI intent classification
+
+### Key Design Principle
+
+Every message — whether from a customer, agent, bot, or system — is stored as a normal `Message` record in the existing `messages` table, with a `conversation_id` linking it to a thread. All existing message features (group messaging, scheduled, templates, broadcast) continue working unchanged.
+
+### Service Ownership
+
+| Domain | Service | Rationale |
+|---|---|---|
+| Conversation, ContactIdentifier, CannedResponse, BotRule | Messaging API | Conversations are messaging domain — same DB as channels, messages, templates |
+| AgentPreference | Account API | Agent preferences are user profile data — sits alongside users, roles, account_users |
+| WebSocket connections, push delivery | AWS (API Gateway + Lambda + DynamoDB) | Managed infrastructure — no new service to operate |
+| `realtime_push_worker` | Messaging API | Python worker bridging RabbitMQ → AWS WebSocket push (same pattern as existing workers) |
+
+---
+
+## 2. System Diagram
+
+```
+                          ┌──────────────────────┐
+                          │    Customer Device    │
+                          │  (WhatsApp/Telegram/  │
+                          │   Messenger/SMS/etc)  │
+                          └──────────┬───────────┘
+                                     │
+                          Platform Provider (Meta, Telegram, Twilio...)
+                                     │
+                                     ▼
+┌────────────────────────────────────────────────────────────────────────┐
+│                        KrakenD Gateway (:8080)                         │
+│                                                                        │
+│  POST /v1/webhooks/{type}/{id}  ──→  Messaging API                     │
+│  GET/PATCH /v1/conversations/*  ──→  Messaging API                     │
+│  GET/PATCH /v1/agent-prefs/*    ──→  Account API                       │
+└────────────────────────────────────────────────────────────────────────┘
+         │                    │
+         ▼                    ▼
+┌─────────────┐    ┌──────────────────┐
+│ Account API │    │  Messaging API   │
+│             │    │                  │
+│ Users       │    │ Channels         │
+│ Accounts    │    │ Conversations    │     ┌─────────────────────────┐
+│ Roles       │    │ Messages         │     │  AWS WebSocket Stack    │
+│ Contacts    │    │ Templates        │     │                         │
+│ AgentPrefs  │    │ CannedResponses  │     │  API Gateway (WSS)     │
+│             │    │ BotRules         │     │    ├ $connect → Lambda  │
+│ Called by   │    │ ContactIdents    │     │    ├ $disconnect → Λ   │
+│ Messaging   │    │ GroupMessages    │     │    ├ subscribe → Λ     │
+│ API for:    │    │ ScheduledMsgs    │     │    ├ typing → Λ        │
+│ - contacts  │    │ OutboxEvents     │     │    └ presence → Λ      │
+│ - agent     │    │                  │     │                         │
+│   prefs     │    │ Workers:         │     │  DynamoDB               │
+│ - user info │    │  outbox_worker ──────→ RabbitMQ                  │
+└─────────────┘    │  realtime_push ←─────── ║ ──→ ws_connections    │
+                   │  dispatch_worker│     │       ws_subscriptions  │
+                   │  group_msg_proc │     │       ws_presence       │
+                   │  inbound_worker │     │                         │
+                   │  schedule_trig  │     │  Push via @connections  │
+                   │  status_update  │     │         │               │
+                   └──────────────────┘     │         ▼               │
+                              │             │  Agent Browser (WSS)    │
+                    ┌─────────┘             └─────────────────────────┘
+                    ▼
+              ┌──────────┐
+              │PostgreSQL│
+              │          │
+              │ channels │
+              │ convos   │
+              │ messages │
+              │ bot_rules│
+              │ canned   │
+              │ contact_ │
+              │  idents  │
+              │ outbox   │
+              └──────────┘
+```
+
+---
+
+## 3. Data Models — Messaging API
+
+### 3.1 `conversations`
 
 ```
 conversations
-├── id                   UUID PK
-├── account_id           UUID (tenant isolation, from gateway header)
-├── channel_id           UUID FK → channels
-├── contact_id           UUID (references Account API contact, not a local FK)
-├── contact_identifier   String — platform-specific ID (phone number, telegram user id, PSID)
+├── id                   UUID PK (from PostgresBaseModel)
+├── account_id           UUID NOT NULL (tenant isolation, from gateway header)
+├── channel_id           UUID NOT NULL (FK → channels)
+├── contact_id           UUID NOT NULL (references Account API contact, not a local FK)
+├── contact_identifier   String(255) NOT NULL — platform-specific ID (phone, telegram user id, PSID)
 ├── assignee_id          UUID nullable — current agent (user_id from Account API)
 ├── team_id              UUID nullable — assigned team
-├── status               Enum: open → bot → assigned → pending → resolved → closed
-├── priority             Enum: low | normal | high | urgent (default: normal)
-├── subject              String nullable — auto-generated or agent-set
-├── labels               JSONB [] — ["billing", "technical"]
-├── first_reply_at       DateTime nullable — SLA: time of first agent reply
-├── resolved_at          DateTime nullable
-├── last_message_at      DateTime — drives inbox sort order
+├── status               String(20) NOT NULL default "open"
+│                        CHECK IN ('open', 'bot', 'assigned', 'pending', 'resolved', 'closed')
+├── priority             String(10) NOT NULL default "normal"
+│                        CHECK IN ('low', 'normal', 'high', 'urgent')
+├── subject              String(255) nullable — auto-generated or agent-set
+├── labels               JSONB default [] — ["billing", "technical"]
+├── first_reply_at       DateTime(tz) nullable — SLA: time of first agent reply
+├── resolved_at          DateTime(tz) nullable
+├── last_message_at      DateTime(tz) nullable — drives inbox sort order
 ├── bot_context          JSONB nullable — context collected by bot before handoff
-├── metadata_            JSONB
-├── created_at / updated_at
+├── metadata_            JSONB default {}
+├── created_at / updated_at (from PostgresBaseModel)
 │
-├── UNIQUE(channel_id, contact_identifier, status NOT IN (closed, resolved))
 ├── INDEX(account_id, status, assignee_id) — inbox queries
 ├── INDEX(account_id, last_message_at DESC) — sorted inbox
 ```
@@ -54,52 +133,85 @@ open ──→ bot ──→ assigned ──→ pending ──→ resolved ─�
   Customer sends new message after resolved ─┘──→ reopens as "open"
 ```
 
-### 1.2 `Message` Table — Extended Columns
+Valid transitions:
+- `open` → `bot`, `assigned`, `closed`
+- `bot` → `assigned`, `closed`
+- `assigned` → `pending`, `resolved`, `closed`
+- `pending` → `assigned`, `resolved`, `closed`
+- `resolved` → `open` (reopen), `closed`
+- `closed` → terminal (no transitions)
 
-Add to the existing `messages` model (nullable — broadcast messages continue working unchanged):
+### 3.2 `messages` — Extended Columns
+
+Add to the existing `messages` model (all nullable — broadcast messages continue working unchanged):
 
 ```
 messages (existing table — add columns)
-├── conversation_id   UUID FK → conversations (nullable)
-├── is_private        Boolean default false — internal notes visible only to agents
-├── sender_type       Enum: contact | agent | bot | system
+├── conversation_id   UUID nullable (FK → conversations, indexed)
+├── is_private        Boolean NOT NULL default false — internal notes visible only to agents
+├── sender_type       String(20) nullable — "contact", "agent", "bot", "system"
+│                     CHECK (sender_type IS NULL OR sender_type IN ('contact', 'agent', 'bot', 'system'))
 ├── sender_id         UUID nullable — agent user_id or bot_rule_id
 ```
 
-### 1.3 `CannedResponse`
+### 3.3 `contact_identifiers`
+
+Solves the "same customer contacts us on WhatsApp AND Telegram" problem — both map to the same `contact_id`.
+
+```
+contact_identifiers
+├── id             UUID PK
+├── account_id     UUID NOT NULL
+├── contact_id     UUID NOT NULL — references Account API contact
+├── channel_type   String(20) NOT NULL
+│                  CHECK IN ('telegram', 'whatsapp', 'messenger', 'sms', 'smpp', 'email')
+├── identifier     String(255) NOT NULL — phone number, telegram user_id, PSID, email
+├── display_name   String(255) nullable — platform display name
+├── metadata_      JSONB default {}
+├── created_at / updated_at
+│
+├── UNIQUE(account_id, channel_type, identifier)
+├── INDEX(contact_id)
+```
+
+### 3.4 `canned_responses`
+
+Pre-saved reply snippets for agent quick replies.
 
 ```
 canned_responses
 ├── id           UUID PK
-├── account_id   UUID
-├── short_code   String — "/greeting", "/refund" (unique per account)
-├── title        String
-├── content      Text — supports {{contact_name}} variables
-├── category     String nullable — "greetings", "billing", "closings"
-├── created_by   UUID
+├── account_id   UUID NOT NULL
+├── short_code   String(50) NOT NULL — "/greeting", "/refund"
+├── title        String(255) NOT NULL
+├── content      Text NOT NULL — supports {{contact_name}} variables
+├── category     String(100) nullable — "greetings", "billing", "closings"
+├── created_by   UUID nullable
+├── metadata_    JSONB default {}
 ├── created_at / updated_at
 │
 ├── UNIQUE(account_id, short_code)
 ```
 
-### 1.4 `BotRule`
+### 3.5 `bot_rules`
+
+Configurable auto-routing rules evaluated in priority order against inbound messages.
 
 ```
 bot_rules
 ├── id             UUID PK
-├── account_id     UUID
+├── account_id     UUID NOT NULL
 ├── name           String — "After Hours Routing", "Billing Keywords"
 ├── priority       Integer — evaluation order (lower = first)
 ├── is_active      Boolean default true
-├── trigger_type   Enum: keyword | time_based | channel | new_conversation | fallback
+├── trigger_type   String NOT NULL
+│                  CHECK IN ('keyword', 'time_based', 'channel', 'new_conversation', 'fallback')
 ├── conditions     JSONB
 │     {
 │       "keywords": ["refund", "return", "cancel"],
 │       "match_mode": "any",                          -- any | all
 │       "channels": ["whatsapp", "telegram"],         -- optional channel filter
-│       "time_range": { "start": "18:00", "end": "08:00", "tz": "Africa/Addis_Ababa" },
-│       "intent": "billing_inquiry",                  -- phase 2 (AI)
-│       "confidence_min": 0.7                         -- phase 2 (AI)
+│       "time_range": { "start": "18:00", "end": "08:00", "tz": "Africa/Addis_Ababa" }
 │     }
 ├── actions        JSONB
 │     {
@@ -108,38 +220,20 @@ bot_rules
 │       "assign_team_id": "uuid",                     -- route to team
 │       "assign_strategy": "round_robin",             -- round_robin | least_busy | manual_queue
 │       "set_labels": ["billing"],                    -- auto-label
-│       "set_priority": "high",                       -- auto-priority
-│       "collect_info": ["name", "order_number"]      -- phase 3: bot asks for info
+│       "set_priority": "high"                        -- auto-priority
 │     }
 ├── created_at / updated_at
 │
 ├── INDEX(account_id, is_active, priority)
 ```
 
-### 1.5 `ContactIdentifier` — Cross-Platform Contact Resolution
-
-Solves the "same customer contacts us on WhatsApp AND Telegram" problem — both map to the same `contact_id`.
-
-```
-contact_identifiers
-├── id             UUID PK
-├── account_id     UUID
-├── contact_id     UUID — references Account API contact
-├── channel_type   Enum: telegram | whatsapp | messenger | sms | email
-├── identifier     String — phone number, telegram user_id, PSID, email
-├── display_name   String nullable — platform display name
-├── metadata_      JSONB — platform-specific profile info
-├── created_at / updated_at
-│
-├── UNIQUE(account_id, channel_type, identifier)
-├── INDEX(contact_id)
-```
-
 ---
 
-## 2. Account API — Agent Preferences
+## 4. Data Models — Account API
 
-New `agent_preferences` table (one row per user, not per account):
+### 4.1 `agent_preferences`
+
+One row per user (user-scoped, not account-scoped). An agent's working hours, language skills, and availability are personal traits that don't change per workspace.
 
 ```
 agent_preferences
@@ -168,306 +262,198 @@ agent_preferences
 ├── created_at / updated_at
 ```
 
-**Why user-scoped not account-scoped:** An agent's working hours, language skills, and availability are personal traits that don't change per workspace. Can migrate to `account_user_preferences` later if multi-account variance is needed.
-
-### New Endpoints
-
-```
-GET    /v1/agent-preferences/me         — get own preferences
-PATCH  /v1/agent-preferences/me         — update own preferences
-GET    /v1/agent-preferences            — list all (admin, for routing engine)
-GET    /v1/agent-preferences/{user_id}  — get specific (admin/system)
-```
-
 ---
 
-## 3. turumba_realtime — Separate WebSocket Service
+## 5. Real-Time Infrastructure — AWS API Gateway WebSocket
 
-### What It Is
+### 5.1 Why AWS WebSocket (Not Socket.IO)
 
-A standalone real-time event delivery service that bridges RabbitMQ domain events to connected browser clients via WebSocket. It does NOT handle any business logic — it is a pure event relay with auth and room management.
+| Dimension | Socket.IO + Redis (original plan) | AWS API Gateway WebSocket |
+|-----------|-----------------------------------|---------------------------|
+| New services to operate | Node.js app + Redis | None (managed) |
+| Languages in stack | Adds Node.js/TypeScript | Stays Python-only |
+| Scaling | Manual (instances + Redis adapter) | Automatic (AWS-managed) |
+| Cost (100 agents) | ~$15-45/mo (containers always on) | ~$2/mo (pay per use) |
+| Cost (1000 agents) | ~$50-100/mo | ~$20/mo |
+| Local dev | Easy (run Node.js locally) | Needs local WS server shim |
+| Client library | socket.io-client (47KB) | Native WebSocket API (0KB) |
+| Rooms/namespaces | Built-in | DIY via DynamoDB subscriptions |
+| Reconnection | Built-in with polling fallback | Client-side reconnect logic |
 
-### Technology
-
-**Node.js + Socket.IO** — chosen for:
-- Native room/namespace support (per-account, per-conversation rooms)
-- Automatic reconnection and fallback (WS → long-polling)
-- Redis adapter for horizontal scaling across multiple instances
-- Industry standard for real-time features
-
-### Architecture
+### 5.2 Architecture
 
 ```
-┌──────────────────────────────────────────────────────────────┐
-│                    turumba_realtime (:3200)                    │
-│                                                               │
-│  ┌─────────────┐     ┌──────────────┐     ┌──────────────┐   │
-│  │ RabbitMQ     │────→│ Event        │────→│ Socket.IO    │   │
-│  │ Consumer     │     │ Router       │     │ Server       │   │
-│  │              │     │              │     │              │   │
-│  │ Subscribes:  │     │ Maps events  │     │ Namespaces:  │   │
-│  │ conversation.*│    │ to rooms &   │     │ /agents      │   │
-│  │ message.*    │     │ namespaces   │     │ /customers   │   │
-│  │ agent.*      │     │              │     │              │   │
-│  └─────────────┘     └──────────────┘     │ Rooms:       │   │
-│                                            │ account:{id} │   │
-│  ┌─────────────┐                           │ conv:{id}    │   │
-│  │ Redis        │                           │ user:{id}    │   │
-│  │ (adapter)    │                           └──────────────┘   │
-│  │              │                                              │
-│  │ - Session    │     ┌──────────────┐                         │
-│  │   store      │     │ Auth         │                         │
-│  │ - Presence   │     │ Middleware   │                         │
-│  │   tracking   │     │              │                         │
-│  │ - Pub/Sub    │     │ Validates    │                         │
-│  │   (multi-    │     │ JWT from     │                         │
-│  │    instance) │     │ Cognito      │                         │
-│  └─────────────┘     └──────────────┘                         │
-└──────────────────────────────────────────────────────────────┘
+Agent Browser (Next.js)
+    │ wss://
+    ▼
+AWS API Gateway (WebSocket API)
+    │ Routes:
+    │   $connect    → Lambda: validate JWT, store connection in DynamoDB
+    │   $disconnect → Lambda: cleanup connection + subscriptions, update presence
+    │   subscribe   → Lambda: validate room access, add to ws_subscriptions
+    │   typing      → Lambda: query room connections, relay typing indicator
+    │   presence    → Lambda: update presence, broadcast to account rooms
+    │
+    │                              ┌──────────────────────┐
+    │  Lambdas read/write ────────→│  DynamoDB Tables      │
+    │                              │  ws_connections       │
+    │                              │  ws_subscriptions     │
+    │                              │  ws_presence          │
+    │                              └───────────┬──────────┘
+    │                                          │
+    │  ┌───────────────────────────────────────┤
+    │  │  realtime_push_worker (Python)         │ reads subscriptions
+    │  │  (same pattern as existing workers)    │
+    │  │                                        │
+    │  │  RabbitMQ ──consume──→ Route event     │
+    │  │                        │               │
+    │  │                        ▼               │
+    │  │              Query DynamoDB for room   │
+    │  │                        │               │
+    │  │                        ▼               │
+    │  │              POST @connections/{id} ───┘
+    │  │              (API Gateway Management API)
+    │  └────────────────────────────────────────┘
 ```
 
-### Components
+### 5.3 DynamoDB Tables
 
-| Component | Responsibility |
-|---|---|
-| **RabbitMQ Consumer** | Subscribes to `conversation.*`, `message.*`, `agent.*` events from the `messaging` exchange |
-| **Event Router** | Maps domain events to Socket.IO rooms/namespaces — determines which connected clients should receive each event |
-| **Socket.IO Server** | Manages WebSocket connections, rooms, namespaces. Two namespaces: `/agents` (support dashboard) and `/customers` (embeddable widget, future) |
-| **Auth Middleware** | Validates Cognito JWT on connection handshake. Extracts user_id, account_ids. Joins user to appropriate rooms |
-| **Redis Adapter** | Socket.IO Redis adapter for multi-instance horizontal scaling. Also stores presence state and typing indicators |
+**`ws_connections`** — Connection registry
 
-### Redis Role
+| Attribute | Type | Notes |
+|-----------|------|-------|
+| `connection_id` (PK) | String | API Gateway connection ID |
+| `user_id` | String | Cognito user sub |
+| `email` | String | |
+| `account_ids` | StringSet | From JWT claims |
+| `connected_at` | String (ISO) | |
+| `ttl` | Number | 24h epoch — auto-cleanup |
 
-1. **Socket.IO adapter** — Multi-instance sync. Event published on instance A reaches clients on instance B via Redis Pub/Sub.
-2. **Presence tracking** — `HSET agent:presence {user_id} {status}` with 60s TTL, refreshed by heartbeat.
-3. **Typing indicators** — `SET typing:{conversation_id}:{user_id} 1 EX 5`
+GSI: `user_id-index` (PK: `user_id`) — find all connections for a user.
 
-### Socket.IO Events
+**`ws_subscriptions`** — Room membership (replaces Socket.IO rooms)
 
-**Server → Client (push):**
+| Attribute | Type | Notes |
+|-----------|------|-------|
+| `room` (PK) | String | `"account:{uuid}"`, `"conv:{uuid}"`, `"user:{uuid}"` |
+| `connection_id` (SK) | String | |
+| `user_id` | String | |
+| `subscribed_at` | String (ISO) | |
+| `ttl` | Number | 24h epoch |
 
-| Event | Payload | Room |
+GSI: `connection_id-index` (PK: `connection_id`) — cleanup all subscriptions on disconnect.
+
+**`ws_presence`** — Agent presence (replaces Redis)
+
+| Attribute | Type | Notes |
+|-----------|------|-------|
+| `account_id` (PK) | String | |
+| `user_id` (SK) | String | |
+| `status` | String | `online`, `away`, `offline` |
+| `last_seen` | String (ISO) | |
+| `connection_count` | Number | Active connections for this user |
+| `ttl` | Number | 5min epoch — heartbeat refresh |
+
+### 5.4 Lambda Functions
+
+All Python 3.12. Connection lifecycle only — no business logic.
+
+| Lambda | Route | What It Does |
+|--------|-------|-------------|
+| `ws-connect` | `$connect` | Parse `?token=<JWT>` query param, validate Cognito JWT (RS256), extract user_id + account_ids, store in `ws_connections`, auto-subscribe to `user:{user_id}` room |
+| `ws-disconnect` | `$disconnect` | Query `connection_id-index` on `ws_subscriptions` → batch delete all subscriptions. Delete from `ws_connections`. Decrement presence `connection_count`, set `offline` if zero |
+| `ws-subscribe` | `subscribe` | Payload: `{ room: "account:uuid" }` or `{ room: "conv:uuid" }`. Validate user has access to the room (account_ids check). Put item in `ws_subscriptions` |
+| `ws-typing` | `typing` | Payload: `{ conversation_id, typing: bool }`. Query `ws_subscriptions` for room `conv:{id}` → POST `@connections/{conn_id}` for each (skip sender) |
+| `ws-presence` | `presence` | Payload: `{ status: "online"/"away"/"offline" }`. Update `ws_presence` table. Query `ws_subscriptions` for all `account:*` rooms the user belongs to → broadcast presence to those connections |
+
+### 5.5 `realtime_push_worker`
+
+New Python worker in the Messaging API. Follows the exact same pattern as `dispatch_worker`, `inbound_message_worker`, etc.
+
+**File:** `turumba_messaging_api/src/workers/realtime_push_worker.py`
+
+```
+Consumes from: "realtime.events" queue (on "messaging" exchange)
+Bindings:
+  - conversation.created
+  - conversation.assigned
+  - conversation.status_changed
+  - conversation.resolved
+  - conversation.message.created
+  - conversation.message.sent
+
+For each event:
+  1. Parse event payload → extract account_id, conversation_id, etc.
+  2. Determine target rooms:
+     - conversation.created        → ["account:{account_id}"]
+     - conversation.message.*      → ["conv:{conversation_id}", "account:{account_id}"]
+     - conversation.assigned       → ["user:{assignee_id}", "account:{account_id}"]
+     - conversation.status_changed → ["account:{account_id}"]
+     - conversation.resolved       → ["account:{account_id}"]
+  3. For each room: query DynamoDB ws_subscriptions (PK = room)
+  4. For each connection_id: POST @connections/{id} via API Gateway Management API
+     - Payload: JSON event (same shape as the original Socket.IO payloads)
+  5. Handle GoneException (410) → connection is stale, delete from ws_connections + ws_subscriptions
+  6. ACK the RabbitMQ message
+```
+
+Uses `boto3` for DynamoDB and API Gateway Management API calls. Requires `WS_API_ENDPOINT` (the API Gateway callback URL) and `WS_CONNECTIONS_TABLE`, `WS_SUBSCRIPTIONS_TABLE` in config.
+
+### 5.6 WebSocket Events
+
+**Server → Client (push via realtime_push_worker):**
+
+| Event Type | Target Room | Payload |
 |---|---|---|
-| `conversation:new` | Conversation summary | `account:{id}` |
-| `conversation:updated` | Status/assignee/label change | `account:{id}` + `conv:{id}` |
-| `conversation:message` | New message content | `conv:{id}` |
-| `conversation:typing` | Who is typing | `conv:{id}` |
-| `agent:presence` | Agent online/offline/away | `account:{id}` |
-| `notification:assignment` | Assignment details | `user:{assignee_id}` |
-| `queue:update` | Queue position | `account:{id}` |
+| `conversation:new` | `account:{id}` | `{ conversation_id, channel_id, contact_identifier, status, created_at }` |
+| `conversation:updated` | `account:{id}` + `conv:{id}` | `{ conversation_id, status?, assignee_id?, labels?, priority?, last_message_at? }` |
+| `conversation:message` | `conv:{id}` | `{ conversation_id, message_id, sender_type, message_body, is_private, created_at }` |
+| `conversation:typing` | `conv:{id}` | `{ user_id, typing: bool }` |
+| `agent:presence` | `account:{id}` | `{ user_id, status: "online"/"away"/"offline" }` |
+| `notification:assignment` | `user:{assignee_id}` | `{ conversation_id, assigned_by, rule_name? }` |
 
-**Client → Server (actions):**
+**Client → Server (via WebSocket frames to API Gateway routes):**
 
-| Event | Payload | Effect |
+| Action | Payload | Effect |
 |---|---|---|
-| `conversation:join` | `{ conversation_id }` | Subscribe to conversation room |
-| `conversation:leave` | `{ conversation_id }` | Unsubscribe |
-| `conversation:typing:start` | `{ conversation_id }` | Broadcast typing indicator |
-| `conversation:typing:stop` | `{ conversation_id }` | Stop typing indicator |
-| `agent:status` | `{ status: "online" \| "away" \| "offline" }` | Set own presence |
+| `subscribe` | `{ room: "account:{id}" }` | Join account room for inbox updates |
+| `subscribe` | `{ room: "conv:{id}" }` | Join conversation room for live messages |
+| `unsubscribe` | `{ room: "conv:{id}" }` | Leave conversation room |
+| `typing` | `{ conversation_id, typing: bool }` | Relay typing indicator to others in room |
+| `presence` | `{ status: "online"/"away"/"offline" }` | Set own presence |
 
-### Docker Compose
+### 5.7 Authentication
 
-```yaml
-turumba_realtime:
-  image: turumba_realtime:latest
-  platform: linux/amd64
-  ports:
-    - "3200:3200"
-  environment:
-    - RABBITMQ_URL=amqp://guest:guest@rabbitmq:5672
-    - REDIS_URL=redis://redis:6379
-    - COGNITO_USER_POOL_ID=${COGNITO_USER_POOL_ID}
-    - AWS_REGION=${AWS_REGION}
-    - PORT=3200
-  networks:
-    - gateway-network
-  depends_on:
-    - rabbitmq
-    - redis
-```
+- On `$connect`, the client passes the Cognito JWT as `?token=<JWT>` query parameter
+- The `ws-connect` Lambda validates the token against the Cognito JWKS endpoint (RS256)
+- Extracts `sub` (user_id), `email`, and `custom:account_ids` from token claims
+- Stores these in the `ws_connections` DynamoDB table
+- On token refresh (near expiry), the frontend gracefully disconnects and reconnects with the new token
 
----
+### 5.8 Local Development
 
-## 4. Complete System Flow
+**`turumba_messaging_api/src/dev/local_ws_server.py`** — A lightweight FastAPI WebSocket endpoint that mimics the AWS API Gateway behavior with in-memory dictionaries for connections, subscriptions, and presence. Runs alongside the Messaging API during development.
 
-### System Diagram
+The `realtime_push_worker` config supports a `LOCAL_WS_MODE=true` flag that sends messages to the local WebSocket server instead of calling AWS APIs.
 
-```
-                          ┌──────────────────────┐
-                          │    Customer Device    │
-                          │  (WhatsApp/Telegram/  │
-                          │   Messenger/SMS/etc)  │
-                          └──────────┬───────────┘
-                                     │
-                          Platform Provider (Meta, Telegram, Twilio...)
-                                     │
-                                     ▼
-┌────────────────────────────────────────────────────────────────────────┐
-│                        KrakenD Gateway (:8080)                         │
-│                                                                        │
-│  POST /v1/webhooks/{type}/{id}  ──→  Messaging API                     │
-│  GET/PATCH /v1/conversations/*  ──→  Messaging API                     │
-│  GET/PATCH /v1/agent-prefs/*    ──→  Account API                       │
-│  WS /ws                        ──→  turumba_realtime (or direct)       │
-└────────────────────────────────────────────────────────────────────────┘
-         │                    │                    │
-         ▼                    ▼                    ▼
-┌─────────────┐    ┌──────────────────┐    ┌─────────────────┐
-│ Account API │    │  Messaging API   │    │ turumba_realtime│
-│             │    │                  │    │                 │
-│ Users       │    │ Channels         │    │ Socket.IO       │
-│ Accounts    │    │ Conversations    │    │ RabbitMQ sub    │
-│ Roles       │    │ Messages         │    │ Redis presence  │
-│ Contacts    │    │ Templates        │    │ JWT auth        │
-│ AgentPrefs  │    │ CannedResponses  │    │                 │
-│             │    │ BotRules         │    │ Pushes to:      │
-│ Called by   │    │ ContactIdents    │    │  - Agent inbox  │
-│ Messaging   │    │ GroupMessages    │    │  - Chat thread  │
-│ API for:    │    │ ScheduledMsgs    │    │  - Notifications│
-│ - contacts  │    │ OutboxEvents     │    │                 │
-│ - agent     │    │                  │    │                 │
-│   prefs     │    │ OutboxWorker ──────────→ RabbitMQ       │
-│ - user info │    │                  │    │      │          │
-└─────────────┘    └──────────────────┘    │      ▼          │
-                                           │  Consumes       │
-                                           │  conversation.* │
-                                           └─────────────────┘
-                              │
-                    ┌─────────┴──────────┐
-                    ▼                    ▼
-              ┌──────────┐        ┌──────────┐
-              │PostgreSQL│        │ Redis    │
-              │          │        │          │
-              │ channels │        │ presence │
-              │ convos   │        │ typing   │
-              │ messages │        │ sessions │
-              │ bot_rules│        │ rate lim │
-              │ canned   │        │ cache    │
-              │ contacts │        │          │
-              │ outbox   │        │          │
-              └──────────┘        └──────────┘
-```
+### 5.9 Deployment
 
-### Inbound Conversation Flow (End-to-End)
+Manual AWS Console setup first to validate the approach:
+1. Create API Gateway WebSocket API
+2. Create DynamoDB tables with GSIs
+3. Create Lambda functions with IAM roles
+4. Configure routes ($connect, $disconnect, subscribe, typing, presence)
+5. Deploy and test with a simple WebSocket client
 
-```
-1. Customer sends "I want a refund" on WhatsApp
-                    │
-2. Meta webhook ──→ POST /v1/webhooks/whatsapp/{channel_id}
-                    │
-3. Webhook Receiver (Messaging API)
-   ├── Verify HMAC signature
-   ├── Parse payload via WhatsAppAdapter
-   ├── Return 200 immediately
-   └── Enqueue: conversation.inbound → RabbitMQ
-                    │
-4. Inbound Worker (RabbitMQ consumer, Messaging API)
-   ├── Lookup ContactIdentifier by (whatsapp, phone_number)
-   │   ├── Found → get contact_id
-   │   └── Not found → call Account API to create contact → create ContactIdentifier
-   ├── Find open Conversation for this contact + channel
-   │   ├── Found → append message to existing conversation
-   │   └── Not found → create new Conversation (status: open)
-   ├── Create Message (direction: inbound, sender_type: contact)
-   ├── Update conversation.last_message_at
-   └── Emit: conversation.message.received → RabbitMQ
-                    │
-5. Bot Router (RabbitMQ consumer, Messaging API)
-   ├── Load BotRules for account (ordered by priority)
-   ├── Evaluate rules against message:
-   │   ├── Rule "Billing Keywords" (priority 1):
-   │   │   conditions: { keywords: ["refund", "return"], match_mode: "any" }
-   │   │   ✅ MATCH — "refund" found
-   │   │   actions:
-   │   │     reply_template_id: "refund_policy_template"
-   │   │     assign_team_id: "billing_team_id"
-   │   │     set_labels: ["billing", "refund"]
-   │   │     set_priority: "high"
-   │   │
-   ├── Execute actions:
-   │   ├── Create Message (direction: outbound, sender_type: bot, content: template)
-   │   ├── Dispatch reply via WhatsAppAdapter
-   │   ├── Fetch eligible agents from Account API:
-   │   │   GET /v1/agent-preferences?available_topics=billing&is_available=true
-   │   │   Filter by: available_hours (current time), available_channels (whatsapp)
-   │   │   Sort by: least active conversations, then longest idle
-   │   ├── Assign to best agent → conversation.assignee_id = agent_id
-   │   ├── Update conversation.status = "assigned"
-   │   ├── Create ConversationAssignment record
-   │   └── Emit: conversation.assigned → RabbitMQ
-                    │
-6. turumba_realtime (consumes conversation.*)
-   ├── conversation.message.received →
-   │   emit to room "account:{id}" (inbox list update)
-   ├── conversation.assigned →
-   │   emit to room "user:{assignee_id}" (assignment notification)
-   └── Agent's browser receives real-time push
-                    │
-7. Agent opens conversation in inbox
-   ├── GET /v1/conversations/{id} → conversation detail + recent messages
-   ├── Joins Socket.IO room "conv:{id}"
-   ├── Sees: customer message "I want a refund"
-   ├── Sees: bot reply with refund policy template
-   ├── Sees: labels ["billing", "refund"], priority: high
-   ├── Sees: bot_context (if bot collected any info)
-   │
-   ├── Agent replies: POST /v1/conversations/{id}/messages
-   │   { content: "Hi! I can help with your refund. What's your order number?" }
-   │   ├── Message created (direction: outbound, sender_type: agent)
-   │   ├── Dispatched via WhatsAppAdapter to customer
-   │   ├── conversation.first_reply_at = now() (SLA metric)
-   │   └── Emit: conversation.message.sent → RabbitMQ → turumba_realtime
-   │
-   ├── Customer replies with order number
-   │   (flows back through steps 2-6, bot skipped because status = "assigned")
-   │
-   ├── Agent resolves: PATCH /v1/conversations/{id} { status: "resolved" }
-   │   └── conversation.resolved_at = now()
-   │
-   └── If customer sends another message later → conversation reopens as "open"
-```
-
-### Agent Inbox Flow
-
-```
-GET /v1/conversations?status=open&assignee_id=me               — my open conversations
-GET /v1/conversations?status=assigned&team_id=billing           — team view
-GET /v1/conversations?status=bot                                — bot-handled, may need takeover
-GET /v1/conversations?sort=last_message_at:desc                 — sorted by latest activity
-
-Agent picks up unassigned conversation:
-  PATCH /v1/conversations/{id} { assignee_id: agent_id }
-  → status changes to "assigned"
-  → ConversationAssignment record created
-  → Event: conversation.assigned → RabbitMQ → turumba_realtime
-
-Agent replies:
-  POST /v1/conversations/{id}/messages { content: "..." }
-  → Message created (direction: outbound, sender_type: agent)
-  → Dispatched via channel adapter to customer's platform
-  → first_reply_at set if first agent reply (SLA metric)
-  → Event: conversation.message.sent → RabbitMQ → turumba_realtime
-
-Agent adds internal note:
-  POST /v1/conversations/{id}/messages { content: "...", is_private: true }
-  → Message created (direction: outbound, is_private: true)
-  → NOT sent to customer, visible only in agent inbox
-  → Event pushed only to agents in conv:{id} room
-
-Agent resolves:
-  PATCH /v1/conversations/{id} { status: "resolved" }
-  → resolved_at timestamp set
-  → Event: conversation.resolved → RabbitMQ → turumba_realtime
-```
+Codify later with CloudFormation, CDK, SAM, or Terraform once validated.
 
 ---
 
-## 5. Bot-First Routing System
+## 6. Bot-First Routing System
 
-The bot acts as a first responder with three escalation strategies across implementation phases.
+The bot acts as a first responder — every inbound message hits the bot engine before reaching a human agent.
 
-### Phase 1: Rule-Based Router (MVP — No AI Required)
+### 6.1 Phase 1: Rule-Based Router (MVP — No AI Required)
 
 ```
 BotRules evaluated in priority order:
@@ -484,41 +470,11 @@ Rule 3: Keyword matching
   IF message contains ["refund", "return", "cancel"]
   THEN reply with refund policy template + assign to team: "billing"
 
-Rule 4: Language detection
-  IF message language == "am" (Amharic)
-  THEN assign to team: "amharic_support"
-
-Rule 5: Fallback
+Rule 4: Fallback
   THEN reply with "An agent will be with you shortly" + assign round-robin
 ```
 
-### Phase 2: AI-Powered Intent Classification
-
-```
-[Inbound Message] → [Intent Classifier Service]
-   - LLM or fine-tuned model classifies intent
-   - Returns: { intent: "billing_inquiry", confidence: 0.85, entities: {...} }
-   - BotRules can match on intent + confidence threshold
-   - Higher accuracy routing than keyword matching
-```
-
-### Phase 3: Conversational Bot
-
-```
-[Inbound Message] → [Bot Conversation Engine]
-   - Multi-turn conversation with customer
-   - Collects info: name, issue type, order number, etc.
-   - Knowledge base lookup for FAQ answers
-   - Handoff criteria:
-       • Customer explicitly asks for human
-       • Bot confidence drops below threshold
-       • Sensitive topic detected (complaints, legal)
-       • 3+ turns without resolution
-   - On handoff: conversation.status → "assigned"
-     with full bot context in metadata for agent
-```
-
-### Agent Routing Algorithm
+### 6.2 Agent Routing Algorithm
 
 ```
 1. Filter eligible agents by:
@@ -538,11 +494,221 @@ Rule 5: Fallback
    - If high priority → notify team lead
 ```
 
+### 6.3 Phase 2: AI-Powered Intent Classification (Future)
+
+```
+[Inbound Message] → [Intent Classifier Service]
+   - LLM or fine-tuned model classifies intent
+   - Returns: { intent: "billing_inquiry", confidence: 0.85, entities: {...} }
+   - BotRules can match on intent + confidence threshold
+```
+
+### 6.4 Phase 3: Conversational Bot (Future)
+
+Multi-turn bot conversations, knowledge base FAQ lookup, handoff criteria (customer asks for human, confidence drops, sensitive topic, 3+ turns without resolution).
+
 ---
 
-## 6. Service-to-Service Communication
+## 7. End-to-End Flows
 
-The Messaging API needs data from the Account API during routing.
+### 7.1 Inbound Customer Message
+
+```
+1. Customer sends "I want a refund" on WhatsApp
+                    │
+2. Meta webhook ──→ POST /v1/webhooks/whatsapp/{channel_id}
+                    │
+3. Webhook Receiver (Messaging API)
+   ├── Verify HMAC signature
+   ├── Parse payload via WhatsAppAdapter
+   ├── Return 200 immediately
+   └── Enqueue: conversation.inbound → RabbitMQ
+                    │
+4. Inbound Worker (RabbitMQ consumer)
+   ├── Lookup ContactIdentifier by (whatsapp, phone_number)
+   │   ├── Found → get contact_id
+   │   └── Not found → call Account API to create contact → create ContactIdentifier
+   ├── Find open Conversation for this contact + channel
+   │   ├── Found → append message to existing conversation
+   │   └── Not found → create new Conversation (status: open)
+   ├── Create Message (direction: inbound, sender_type: contact, conversation_id: X)
+   ├── Update conversation.last_message_at
+   └── Emit: conversation.message.created → outbox → RabbitMQ
+                    │
+5. Bot Router (RabbitMQ consumer)
+   ├── Load BotRules for account (ordered by priority)
+   ├── Evaluate rules against message:
+   │   ├── Rule "Billing Keywords" (priority 1):
+   │   │   conditions: { keywords: ["refund", "return"], match_mode: "any" }
+   │   │   ✅ MATCH — "refund" found
+   │   │   actions:
+   │   │     reply_template_id: "refund_policy_template"
+   │   │     assign_team_id: "billing_team_id"
+   │   │     set_labels: ["billing", "refund"]
+   │   │     set_priority: "high"
+   ├── Execute actions:
+   │   ├── Create Message (direction: outbound, sender_type: bot, content: template)
+   │   ├── Dispatch reply via WhatsAppAdapter
+   │   ├── Fetch eligible agents from Account API:
+   │   │   GET /v1/agent-preferences?available_topics=billing&is_available=true
+   │   ├── Assign to best agent → conversation.assignee_id = agent_id
+   │   ├── Update conversation.status = "assigned"
+   │   └── Emit: conversation.assigned → outbox → RabbitMQ
+                    │
+6. realtime_push_worker (consumes conversation.*)
+   ├── conversation.message.created →
+   │   query DynamoDB for room "conv:{X}" → push to agents viewing this thread
+   │   query DynamoDB for room "account:{id}" → push inbox update to all agents
+   ├── conversation.assigned →
+   │   query DynamoDB for room "user:{assignee_id}" → push assignment notification
+   └── Agent's browser receives WebSocket frame → UI updates
+                    │
+7. Agent opens conversation in inbox
+   ├── GET /v1/conversations/{id} → conversation detail
+   ├── GET /v1/conversations/{id}/messages → message history
+   ├── WebSocket: subscribe to room "conv:{id}"
+   ├── Sees: customer message "I want a refund"
+   ├── Sees: bot reply with refund policy template
+   └── Sees: labels ["billing", "refund"], priority: high
+```
+
+### 7.2 Agent Reply
+
+```
+1. Agent types reply → WebSocket frame { action: "typing", conversation_id: X }
+   → ws-typing Lambda relays to other agents in conv room
+
+2. Agent sends → POST /v1/conversations/{id}/messages { content: "..." }
+   ├── Message created (direction: outbound, sender_type: agent)
+   ├── conversation.first_reply_at set if first agent reply (SLA metric)
+   ├── conversation.last_message_at updated
+   ├── Dispatched via WhatsAppAdapter to customer's phone
+   └── Emit: conversation.message.sent → outbox → RabbitMQ
+
+3. realtime_push_worker → pushes to room "conv:{X}" + "account:{id}"
+
+4. Customer receives reply on WhatsApp
+```
+
+### 7.3 Internal Notes
+
+```
+Agent sends → POST /v1/conversations/{id}/messages { content: "...", is_private: true }
+├── Message created (is_private: true)
+├── NOT dispatched to customer (internal note)
+├── Emit: conversation.message.created (with is_private: true)
+└── realtime_push_worker pushes to agents in conv room only
+```
+
+### 7.4 Conversation Lifecycle
+
+```
+Agent inbox queries:
+  GET /v1/conversations?status=open&assignee_id=me               — my open conversations
+  GET /v1/conversations?status=assigned&team_id=billing           — team view
+  GET /v1/conversations?status=bot                                — bot-handled, may need takeover
+  GET /v1/conversations?sort=last_message_at:desc                 — sorted by latest activity
+
+Agent picks up unassigned:
+  PATCH /v1/conversations/{id} { assignee_id: agent_id }
+  → status changes to "assigned"
+  → Event: conversation.assigned → realtime push
+
+Agent sets pending (waiting for customer):
+  PATCH /v1/conversations/{id} { status: "pending" }
+
+Agent resolves:
+  PATCH /v1/conversations/{id} { status: "resolved" }
+  → resolved_at timestamp set
+
+Customer sends new message after resolved → conversation reopens as "open"
+```
+
+---
+
+## 8. API Surface
+
+### 8.1 New Messaging API Endpoints
+
+```
+# Conversations
+POST   /v1/conversations/                      # Create (usually done by inbound worker)
+GET    /v1/conversations/                       # List with filters (inbox view)
+GET    /v1/conversations/{id}                   # Detail
+PATCH  /v1/conversations/{id}                   # Update status, assignee, labels, priority
+DELETE /v1/conversations/{id}                   # Soft-close (set status to closed)
+
+# Conversation Messages (nested)
+POST   /v1/conversations/{id}/messages          # Agent reply / internal note
+GET    /v1/conversations/{id}/messages          # Message history (paginated, chronological)
+
+# Canned Responses
+POST   /v1/canned-responses/
+GET    /v1/canned-responses/
+GET    /v1/canned-responses/{id}
+PATCH  /v1/canned-responses/{id}
+DELETE /v1/canned-responses/{id}
+
+# Bot Rules
+POST   /v1/bot-rules/
+GET    /v1/bot-rules/
+GET    /v1/bot-rules/{id}
+PATCH  /v1/bot-rules/{id}
+DELETE /v1/bot-rules/{id}
+
+# Contact Identifiers
+POST   /v1/contact-identifiers/
+GET    /v1/contact-identifiers/
+GET    /v1/contact-identifiers/{id}
+PATCH  /v1/contact-identifiers/{id}
+DELETE /v1/contact-identifiers/{id}
+```
+
+### 8.2 New Account API Endpoints
+
+```
+GET    /v1/agent-preferences/me         — get own preferences
+PATCH  /v1/agent-preferences/me         — update own preferences
+GET    /v1/agent-preferences/           — list all (admin, for routing engine)
+GET    /v1/agent-preferences/{user_id}  — get specific (admin/system)
+```
+
+### 8.3 New Gateway Routes
+
+All endpoints above need KrakenD endpoint definitions in `config/partials/endpoints/`:
+- `conversations.json` — targets Messaging API
+- `canned-responses.json` — targets Messaging API
+- `bot-rules.json` — targets Messaging API
+- `contact-identifiers.json` — targets Messaging API
+- `agent-preferences.json` — targets Account API
+
+All routes use `no-op` encoding, require authentication, and have context enrichment enabled.
+
+---
+
+## 9. Event Types
+
+Add to `src/events/event_types.py` in the Messaging API:
+
+```
+# Conversation events (flow through existing outbox → RabbitMQ pipeline)
+CONVERSATION_CREATED         = "conversation.created"
+CONVERSATION_ASSIGNED        = "conversation.assigned"
+CONVERSATION_STATUS_CHANGED  = "conversation.status_changed"
+CONVERSATION_RESOLVED        = "conversation.resolved"
+CONVERSATION_MESSAGE_CREATED = "conversation.message.created"
+CONVERSATION_MESSAGE_SENT    = "conversation.message.sent"
+```
+
+RabbitMQ topology addition:
+- New queue: `realtime.events` (durable) on the `messaging` exchange
+- Bindings: all `conversation.*` patterns listed above
+
+---
+
+## 10. Service-to-Service Communication
+
+The Messaging API needs data from the Account API during bot routing (agent preferences, contact lookup).
 
 ### Phase 1: Synchronous HTTP (MVP)
 
@@ -552,132 +718,129 @@ Messaging API ──HTTP──→ Account API (internal, not through gateway)
   GET http://gt_turumba_account_api:8000/v1/contacts?phone=+251...
 ```
 
-Uses Docker network DNS. Add a lightweight HTTP client in the Messaging API with retry and circuit breaker.
+Uses Docker network DNS. Lightweight HTTP client with retry and circuit breaker.
 
 ### Phase 2: Cache + Event Sync (Scale)
 
 ```
 Account API ──→ RabbitMQ (agent.preference.updated, contact.created)
-Messaging API ──→ consumes events, caches in Redis
-Routing engine queries Redis instead of HTTP
+Messaging API ──→ consumes events, caches in Redis/local
+Routing engine queries cache instead of HTTP
 ```
 
 ---
 
-## 7. API Surface
+## 11. Frontend Integration
 
-### New Messaging API Endpoints
+### 11.1 WebSocket Manager
 
-```
-# Conversations
-POST   /v1/conversations                      # Manual creation (internal)
-GET    /v1/conversations                       # List with filters (inbox view)
-GET    /v1/conversations/{id}                  # Detail with recent messages
-PATCH  /v1/conversations/{id}                  # Update status, assignee, labels
-DELETE /v1/conversations/{id}                  # Soft-close
+`turumba_web_core/apps/turumba/lib/realtime/websocket-manager.ts`
 
-# Conversation Messages
-POST   /v1/conversations/{id}/messages         # Agent reply / internal note
-GET    /v1/conversations/{id}/messages         # Message history (paginated)
+Singleton wrapper around the native `WebSocket` API:
+- Connect with Cognito JWT as query param
+- Auto-reconnect with exponential backoff
+- Room subscription management (subscribe/unsubscribe)
+- Event dispatch to registered listeners
+- Heartbeat/keepalive
+- Graceful disconnect on token refresh
 
-# Conversation Assignment
-POST   /v1/conversations/{id}/assign           # Assign to agent/team
-GET    /v1/conversations/{id}/assignments      # Assignment history
+### 11.2 React Hook
 
-# Canned Responses
-POST   /v1/canned-responses
-GET    /v1/canned-responses
-GET    /v1/canned-responses/{id}
-PATCH  /v1/canned-responses/{id}
-DELETE /v1/canned-responses/{id}
+`turumba_web_core/apps/turumba/lib/realtime/use-realtime.ts`
 
-# Bot Rules
-POST   /v1/bot-rules
-GET    /v1/bot-rules
-GET    /v1/bot-rules/{id}
-PATCH  /v1/bot-rules/{id}
-DELETE /v1/bot-rules/{id}
+```typescript
+// Subscribe to events for a specific conversation
+const { messages, typing } = useConversationRealtime(conversationId);
 
-# Contact Identifiers
-POST   /v1/contact-identifiers
-GET    /v1/contact-identifiers
-GET    /v1/contact-identifiers/{id}
-PATCH  /v1/contact-identifiers/{id}
-DELETE /v1/contact-identifiers/{id}
+// Subscribe to inbox updates
+const { newConversations, updatedConversations } = useInboxRealtime(accountId);
 
-# Webhooks (inbound from channels — from HSM-003)
-POST   /v1/webhooks/{channel_type}/{channel_id}
+// Subscribe to agent presence
+const { presenceMap } = usePresenceRealtime(accountId);
 ```
 
-### New Account API Endpoints
+### 11.3 Existing Frontend Components
 
-```
-GET    /v1/agent-preferences/me
-PATCH  /v1/agent-preferences/me
-GET    /v1/agent-preferences
-GET    /v1/agent-preferences/{user_id}
-```
-
-### New Gateway Routes
-
-All above endpoints need KrakenD endpoint definitions in `config/partials/endpoints/`.
+The ConversationTab, ConversationSidebar, ConversationChatView, and ContactInfoPanel components are already built with mock data. They need to be wired to:
+- Real REST API calls (conversations, messages)
+- WebSocket events (new messages, typing, presence)
+- React Query for server state management
 
 ---
 
-## 8. Implementation Phases
+## 12. Implementation Phases
 
-### Phase 1: Conversation Foundation
-**Prerequisites:** HSM-001 (Channel Adapters), HSM-003 (Webhook Receivers)
+### Phase 1: Conversation Foundation — P0
 
-1. `Conversation` model + CRUD + status lifecycle in Messaging API
-2. Extend `Message` model with `conversation_id`, `is_private`, `sender_type`, `sender_id`
-3. `ConversationMessage` nested endpoint (messages within conversations)
-4. `ContactIdentifier` model + CRUD
-5. Inbound message → conversation creation logic (in webhook consumer)
-6. Agent assignment (manual) + assignment history
-7. `CannedResponse` model + CRUD
-8. `AgentPreference` model + CRUD in Account API
-9. Basic inbox API with filters (status, assignee, channel, contact)
-10. Gateway route configuration for all new endpoints
+**Goal:** Core data layer — conversations exist, messages link to them, agents have preferences.
 
-### Phase 2: Bot Router + Agent Routing
+| # | Task | Service |
+|---|------|---------|
+| 1 | Conversation model + full CRUD + status lifecycle | Messaging API |
+| 2 | Extend Message model with conversation_id, is_private, sender_type, sender_id | Messaging API |
+| 3 | Nested endpoint: POST/GET /v1/conversations/{id}/messages | Messaging API |
+| 4 | ContactIdentifier model + full CRUD | Messaging API |
+| 5 | CannedResponse model + full CRUD | Messaging API |
+| 6 | Conversation event types + outbox wiring | Messaging API |
+| 7 | AgentPreference model + CRUD + /me endpoint | Account API |
+| 8 | Gateway route configuration for all new endpoints | Gateway |
 
-1. `BotRule` model + CRUD + rule evaluation engine
-2. Keyword-based auto-routing
-3. Time-based routing (business hours awareness)
-4. Channel/topic-based routing
-5. Round-robin assignment with preference matching
-6. Service-to-service HTTP client (Messaging API → Account API)
-7. Queue management (when no agent available)
+### Phase 2: Bot Router + Agent Routing — P1
 
-### Phase 3: Real-Time + Frontend
+**Goal:** Inbound messages auto-create conversations, bot responds, agents get assigned.
 
-1. `turumba_realtime` service (Socket.IO + RabbitMQ consumer + Redis + JWT auth)
-2. Docker Compose integration
-3. Agent inbox UI (conversation list + message thread)
-4. Typing indicators + presence
-5. Canned response picker in compose area
-6. Internal notes UI
-7. Conversation labels/filters UI
+| # | Task | Service |
+|---|------|---------|
+| 1 | BotRule model + CRUD + rule evaluation engine | Messaging API |
+| 2 | Modify inbound_message_worker for conversation creation | Messaging API |
+| 3 | Bot router worker (RabbitMQ consumer) | Messaging API |
+| 4 | Agent routing algorithm with preference matching | Messaging API |
+| 5 | Service-to-service HTTP client (Messaging → Account API) | Messaging API |
+| 6 | Gateway routes for bot-rules endpoints | Gateway |
 
-### Phase 4: AI Bot + Advanced Features
+### Phase 3: Real-Time Infrastructure — P1
 
-1. Intent classification integration (LLM-based)
-2. Multi-turn bot conversations
-3. Knowledge base for bot FAQ answers
-4. Bot → human handoff with context transfer
-5. CSAT survey after resolution
-6. SLA tracking + alerts
-7. Agent performance analytics
+**Goal:** Live push notifications, typing indicators, agent presence.
+
+| # | Task | Service |
+|---|------|---------|
+| 1 | AWS API Gateway WebSocket API + DynamoDB tables | AWS |
+| 2 | Lambda functions (connect, disconnect, subscribe, typing, presence) | AWS |
+| 3 | realtime_push_worker (RabbitMQ → DynamoDB → API Gateway push) | Messaging API |
+| 4 | RabbitMQ topology: realtime.events queue + bindings | Messaging API |
+| 5 | Local dev WebSocket server shim | Messaging API |
+
+### Phase 4: Frontend Integration — P1
+
+**Goal:** Wire existing mock UI to real APIs + WebSocket.
+
+| # | Task | Service |
+|---|------|---------|
+| 1 | WebSocket manager + React hooks | Web Core |
+| 2 | Conversation inbox (list, filters, real-time updates) | Web Core |
+| 3 | Conversation chat view (messages, reply, internal notes) | Web Core |
+| 4 | Typing indicators + agent presence | Web Core |
+| 5 | Canned response picker in compose area | Web Core |
+| 6 | Assignment notifications | Web Core |
+
+### Phase 5: AI + Advanced Features — Future
+
+- Intent classification integration (LLM-based)
+- Multi-turn bot conversations
+- Knowledge base for bot FAQ answers
+- Bot → human handoff with context transfer
+- CSAT survey after resolution
+- SLA tracking + alerts
+- Agent performance analytics
 
 ---
 
-## 9. Summary of Changes Per Service
+## 13. Summary of Changes Per Service
 
 | Service | New Models | New Endpoints | Other Changes |
 |---|---|---|---|
-| **Messaging API** | `Conversation`, `CannedResponse`, `BotRule`, `ContactIdentifier` + extend `Message` | Conversations CRUD, Conv Messages, Canned Responses CRUD, Bot Rules CRUD, Contact Identifiers CRUD | Bot router worker, agent routing logic, HTTP client to Account API |
-| **Account API** | `AgentPreference` | `/v1/agent-preferences` CRUD + `/me` shortcut | New model, schemas, controller, router |
-| **turumba_realtime** (NEW) | — | WebSocket only (no REST) | Entire new service: Socket.IO + RabbitMQ consumer + Redis + JWT auth |
-| **Gateway** | — | — | Add routes for all new endpoints, optional WS proxy |
-| **Web Core** | — | — | Agent inbox UI, conversation thread UI, Socket.IO client |
+| **Messaging API** | Conversation, CannedResponse, BotRule, ContactIdentifier + extend Message | Conversations CRUD, Conv Messages, Canned Responses, Bot Rules, Contact Identifiers | Bot router worker, realtime_push_worker, agent routing logic, HTTP client to Account API |
+| **Account API** | AgentPreference | `/v1/agent-preferences` CRUD + `/me` shortcut | New model, schemas, controller, router |
+| **AWS** | — | WebSocket API (wss://) | API Gateway + 5 Lambdas + 3 DynamoDB tables |
+| **Gateway** | — | — | Add routes for all new endpoints |
+| **Web Core** | — | — | WebSocket manager, React hooks, wire conversation UI to real APIs |

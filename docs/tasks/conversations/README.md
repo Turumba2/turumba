@@ -1,35 +1,61 @@
-# Customer Support — Conversation Task Specs
+# Conversation Tasks
 
-Task specifications for the omnichannel customer support / conversation inbox feature.
+Task specs for the omnichannel customer support conversation system.
 
-**Architecture Reference:** [Conversation Architecture Plan](../../plans/conversations/ARCHITECTURE.md)
+**Architecture Reference:** [Conversation Architecture](../../plans/conversations/ARCHITECTURE.md)
 
 ## Task Index
 
-| Spec | Service | Priority | Description |
-|------|---------|----------|-------------|
-| [CONV-001](./CONV-001-conversation-models-crud.md) | turumba_messaging_api | P0 | Conversation, ContactIdentifier, CannedResponse models + CRUD, Message table extensions |
-| [CONV-002](./CONV-002-agent-preferences.md) | turumba_account_api | P0 | AgentPreference model + CRUD + `/me` shortcut endpoint |
-| [CONV-003](./CONV-003-bot-router-agent-routing.md) | turumba_messaging_api | P1 | BotRule model + CRUD, rule evaluation engine, agent routing algorithm |
-| [CONV-004](./CONV-004-realtime-websocket-service.md) | turumba_realtime (NEW) | P1 | Standalone Socket.IO + RabbitMQ + Redis real-time event service |
+### Phase 1: Conversation Foundation (P0)
+
+| Task | Title | Service | Depends On |
+|------|-------|---------|------------|
+| [CONV-BE-001](./CONV-BE-001-conversation-models-crud.md) | Conversation + ContactIdentifier + CannedResponse Models & CRUD | Messaging API | — |
+| [CONV-BE-002](./CONV-BE-002-message-extensions-conv-messages.md) | Message Model Extensions + Conversation Messages Endpoint | Messaging API | CONV-BE-001 |
+| [CONV-BE-003](./CONV-BE-003-agent-preferences.md) | Agent Preferences Model & CRUD | Account API | — |
+| [CONV-GW-001](./CONV-GW-001-gateway-routes.md) | Gateway Route Configuration | Gateway | CONV-BE-001, CONV-BE-003 |
+
+### Phase 2: Bot Router + Agent Routing (P1)
+
+| Task | Title | Service | Depends On |
+|------|-------|---------|------------|
+| [CONV-BE-004](./CONV-BE-004-bot-rules-evaluation.md) | BotRule Model + Rule Evaluation Engine | Messaging API | CONV-BE-001 |
+| [CONV-BE-005](./CONV-BE-005-inbound-flow-agent-routing.md) | Inbound Conversation Flow + Agent Routing | Messaging API | CONV-BE-001, CONV-BE-002, CONV-BE-004, CONV-BE-003 |
+
+### Phase 3: Real-Time Infrastructure (P1)
+
+| Task | Title | Service | Depends On |
+|------|-------|---------|------------|
+| [CONV-AWS-001](./CONV-AWS-001-websocket-infrastructure.md) | AWS WebSocket Infrastructure | AWS (API Gateway + Lambda + DynamoDB) | — |
+| [CONV-BE-006](./CONV-BE-006-realtime-push-worker.md) | Realtime Push Worker + RabbitMQ Topology | Messaging API | CONV-BE-001, CONV-AWS-001 |
+
+### Phase 4: Frontend Integration (P1)
+
+| Task | Title | Service | Depends On |
+|------|-------|---------|------------|
+| [CONV-FE-001](./CONV-FE-001-websocket-client-hooks.md) | WebSocket Client + Real-Time Hooks | Web Core | CONV-AWS-001 |
+| [CONV-FE-002](./CONV-FE-002-conversation-inbox-chat.md) | Conversation Inbox + Chat View UI | Web Core | CONV-BE-001, CONV-BE-002, CONV-FE-001 |
 
 ## Dependency Graph
 
 ```
-CONV-001 (Conversation Foundation)
-    │
-    ├──→ CONV-002 (Agent Preferences) — can be built in parallel
-    │
-    ├──→ CONV-003 (Bot Router) — depends on CONV-001 + CONV-002
-    │         │
-    │         └──→ HSM-001 (Channel Adapters) — prerequisite for dispatch
-    │         └──→ HSM-003 (Webhook Receivers) — prerequisite for inbound flow
-    │
-    └──→ CONV-004 (Real-Time Service) — depends on CONV-001 for event types
+CONV-BE-001 (Models + CRUD) ──┬──→ CONV-BE-002 (Message Extensions)
+                               │          │
+CONV-BE-003 (Agent Prefs) ────┤          │
+                               │          │
+                               ├──→ CONV-GW-001 (Gateway Routes)
+                               │
+                               ├──→ CONV-BE-004 (Bot Rules)
+                               │          │
+                               │          ▼
+                               ├──→ CONV-BE-005 (Inbound Flow + Routing)
+                               │
+                               └──→ CONV-BE-006 (Realtime Push Worker)
+                                          ▲
+CONV-AWS-001 (AWS WebSocket) ─────────────┤
+                                          │
+                               ┌──→ CONV-FE-001 (WS Client + Hooks)
+                               │          │
+                               │          ▼
+                               └──→ CONV-FE-002 (Inbox + Chat UI)
 ```
-
-## Prerequisites
-
-- **HSM-001** (Channel Adapter Framework) — required for sending bot replies and agent messages
-- **HSM-003** (Webhook Receivers) — required for receiving inbound customer messages
-- These can be built in parallel with CONV-001 and CONV-002
